@@ -7,8 +7,8 @@ Fetch Brazilian economic and financial time series as pandas DataFrames with a s
 ## Installation
 
 ```bash
-git clone https://github.com/TeodoroRodrigo/BCB.git
-cd BCB
+git clone https://github.com/TeodoroRodrigo/bcb-sgs.git
+cd bcb-sgs
 pip install -r requirements.txt
 ```
 
@@ -158,7 +158,7 @@ fetch_series(INFLATION["IPCA"])
 ## Project Structure
 
 ```
-BCB/
+bcb-sgs/
 ├── bcb_sgs/
 │   ├── __init__.py      # Public API exports
 │   ├── client.py        # API client functions and exceptions
