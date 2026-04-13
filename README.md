@@ -1,4 +1,4 @@
-# bcb_sgs
+# BCG SGS
 
 Python client for the **BCB SGS** (Sistema Gerenciador de Series Temporais) API from the [Banco Central do Brasil](https://dadosabertos.bcb.gov.br/).
 
