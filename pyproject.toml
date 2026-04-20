@@ -64,3 +64,8 @@ Changelog = "https://github.com/TeodoroRodrigo/bcbpy/blob/main/CHANGELOG.md"
 [tool.setuptools.packages.find]
 include = ["bcbpy*"]
 exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that hit the live BCB API (may be slow)",
+]
