@@ -1,4 +1,4 @@
-"""Tests for bcb_sgs.client — API client functions (mocked, no network calls)."""
+"""Tests for bcbpy.client — API client functions (mocked, no network calls)."""
 
 import json
 from datetime import date, datetime
@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 import pytest
 
-from bcb_sgs.client import (
+from bcbpy.client import (
     _format_date,
     _validate_date_range,
     _handle_response,
@@ -113,7 +113,7 @@ def _mock_response(json_data, status_code=200):
 
 
 class TestFetchSeries:
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_returns_dataframe(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         df = fetch_series(12, start_date="2026-04-10", end_date="2026-04-12")
@@ -122,26 +122,26 @@ class TestFetchSeries:
         assert "valor" in df.columns
         assert df.index.name == "data"
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_valor_is_numeric(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         df = fetch_series(12, start_date="2026-04-10", end_date="2026-04-12")
         assert df["valor"].dtype == float
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_empty_response_raises(self, mock_get):
         mock_get.return_value = _mock_response([])
         with pytest.raises(SGSEmptyResponseError):
             fetch_series(99999, start_date="2026-01-01", end_date="2026-01-31")
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_url_contains_code(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(433, start_date="2026-01-01", end_date="2026-04-01")
         url = mock_get.call_args[0][0]
         assert "bcdata.sgs.433" in url
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_date_params_sent(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(12, start_date="2026-01-01", end_date="2026-04-01")
@@ -149,7 +149,7 @@ class TestFetchSeries:
         assert params["dataInicial"] == "01/01/2026"
         assert params["dataFinal"] == "01/04/2026"
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_no_dates_no_date_params(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(12)
@@ -161,20 +161,20 @@ class TestFetchSeries:
 # ---- fetch_last ----
 
 class TestFetchLast:
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_returns_n_rows(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON[:2])
         df = fetch_last(12, n=2)
         assert len(df) == 2
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_url_contains_ultimos(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_last(1, n=5)
         url = mock_get.call_args[0][0]
         assert "ultimos/5" in url
 
-    @patch("bcb_sgs.client.requests.get")
+    @patch("bcbpy.client.requests.get")
     def test_empty_response_raises(self, mock_get):
         mock_get.return_value = _mock_response([])
         with pytest.raises(SGSEmptyResponseError):
@@ -184,7 +184,7 @@ class TestFetchLast:
 # ---- fetch_multiple ----
 
 class TestFetchMultiple:
-    @patch("bcb_sgs.client.fetch_series")
+    @patch("bcbpy.client.fetch_series")
     def test_merges_columns(self, mock_fetch):
         df1 = pd.DataFrame({"valor": [0.05, 0.06]}, index=pd.to_datetime(["2026-04-10", "2026-04-11"]))
         df1.index.name = "data"
@@ -196,13 +196,13 @@ class TestFetchMultiple:
         assert list(result.columns) == ["CDI", "SELIC"]
         assert len(result) == 2
 
-    @patch("bcb_sgs.client.fetch_series")
+    @patch("bcbpy.client.fetch_series")
     def test_all_empty_raises(self, mock_fetch):
         mock_fetch.side_effect = SGSEmptyResponseError("empty")
         with pytest.raises(SGSEmptyResponseError, match="No data returned for any"):
             fetch_multiple({"CDI": 12}, start_date="2026-01-01")
 
-    @patch("bcb_sgs.client.fetch_series")
+    @patch("bcbpy.client.fetch_series")
     def test_partial_empty_skips(self, mock_fetch):
         df1 = pd.DataFrame({"valor": [0.05]}, index=pd.to_datetime(["2026-04-10"]))
         df1.index.name = "data"

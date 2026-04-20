@@ -1,5 +1,24 @@
 # Changelog
 
+## [v1.2.0] - 2026-04-20
+
+### Changed (breaking)
+- **Project renamed from `bcb-sgs` to `bcbpy`.** This is a breaking change for imports and installation:
+  - PyPI distribution: `pip install bcb-sgs` → `pip install bcbpy`
+  - Python import: `from bcb_sgs import ...` → `from bcbpy import ...`
+  - GitHub repository: `TeodoroRodrigo/bcb-sgs` → `TeodoroRodrigo/bcbpy`
+- Updated all documentation, examples, project URLs, and GitHub Actions environment targets to reflect the new name
+
+### Migration
+
+```python
+# old
+from bcb_sgs import fetch_series, INTEREST_RATES
+
+# new
+from bcbpy import fetch_series, INTEREST_RATES
+```
+
 ## [v1.1.1] - 2026-04-20
 
 ### Added

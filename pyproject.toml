@@ -3,8 +3,8 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bcb-sgs"
-version = "1.1.1"
+name = "bcbpy"
+version = "1.2.0"
 description = "Python client for the Banco Central do Brasil SGS (Sistema Gerenciador de Series Temporais) API with 115 curated series codes for Brazilian economic and financial time series."
 readme = "README.md"
 license = "MIT"
@@ -56,11 +56,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/TeodoroRodrigo/BCB"
-Repository = "https://github.com/TeodoroRodrigo/BCB"
-Issues = "https://github.com/TeodoroRodrigo/BCB/issues"
-Changelog = "https://github.com/TeodoroRodrigo/BCB/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/TeodoroRodrigo/bcbpy"
+Repository = "https://github.com/TeodoroRodrigo/bcbpy"
+Issues = "https://github.com/TeodoroRodrigo/bcbpy/issues"
+Changelog = "https://github.com/TeodoroRodrigo/bcbpy/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
-include = ["bcb_sgs*"]
+include = ["bcbpy*"]
 exclude = ["tests*"]

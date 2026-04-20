@@ -1,11 +1,11 @@
 """
 BCB SGS API — Example Usage
 
-Demonstrates the bcb_sgs package for fetching economic data
+Demonstrates the bcbpy package for fetching economic data
 from the Banco Central do Brasil.
 """
 
-from bcb_sgs import (
+from bcbpy import (
     fetch_series,
     fetch_last,
     fetch_multiple,

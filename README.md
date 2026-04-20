@@ -1,4 +1,4 @@
-# BCG SGS
+# bcbpy
 
 Python client for the **BCB SGS** (Sistema Gerenciador de Series Temporais) API from the [Banco Central do Brasil](https://dadosabertos.bcb.gov.br/).
 
@@ -7,21 +7,27 @@ Fetch Brazilian economic and financial time series as pandas DataFrames with a s
 ## Installation
 
 ```bash
-git clone https://github.com/TeodoroRodrigo/bcb-sgs.git
-cd bcb-sgs
+pip install bcbpy
+```
+
+Or from source:
+
+```bash
+git clone https://github.com/TeodoroRodrigo/bcbpy.git
+cd bcbpy
 pip install -r requirements.txt
 ```
 
 ### Requirements
 
-- Python 3.8+
+- Python 3.10+
 - pandas
 - requests
 
 ## Quick Start
 
 ```python
-from bcb_sgs import fetch_series, fetch_last, fetch_multiple, INTEREST_RATES, EXCHANGE_RATES
+from bcbpy import fetch_series, fetch_last, fetch_multiple, INTEREST_RATES, EXCHANGE_RATES
 
 # Last 10 CDI daily rates
 cdi = fetch_last(INTEREST_RATES["CDI_DAILY"], n=10)
@@ -49,7 +55,7 @@ print(df.tail())
 Fetch a time series by its SGS numeric code. Returns a pandas DataFrame indexed by date.
 
 ```python
-from bcb_sgs import fetch_series
+from bcbpy import fetch_series
 
 # Accepts YYYY-MM-DD or DD/MM/YYYY date formats
 ipca = fetch_series(433, start_date="2023-01-01", end_date="2024-12-31")
@@ -60,7 +66,7 @@ ipca = fetch_series(433, start_date="2023-01-01", end_date="2024-12-31")
 Fetch the last N observations of a series.
 
 ```python
-from bcb_sgs import fetch_last
+from bcbpy import fetch_last
 
 selic = fetch_last(11, n=5)
 ```
@@ -70,7 +76,7 @@ selic = fetch_last(11, n=5)
 Fetch multiple series and merge them into a single DataFrame, one column per series.
 
 ```python
-from bcb_sgs import fetch_multiple
+from bcbpy import fetch_multiple
 
 df = fetch_multiple({"CDI": 12, "SELIC": 11, "TR": 226}, start_date="2024-01-01")
 ```
@@ -80,7 +86,7 @@ df = fetch_multiple({"CDI": 12, "SELIC": 11, "TR": 226}, start_date="2024-01-01"
 Print all available series codes. Pass a category name to filter.
 
 ```python
-from bcb_sgs import list_codes
+from bcbpy import list_codes
 
 list_codes()                        # all 115 codes across 14 categories
 list_codes("INTEREST_RATES")        # only interest rate codes
@@ -91,7 +97,7 @@ list_codes("INTEREST_RATES")        # only interest rate codes
 Search codes by keyword (case-insensitive). Returns a dict of matches.
 
 ```python
-from bcb_sgs import search_codes
+from bcbpy import search_codes
 
 results = search_codes("IPCA")      # finds 15 IPCA-related codes
 results = search_codes("USD")       # finds USD exchange rate codes
@@ -108,7 +114,7 @@ results = search_codes("USD")       # finds USD exchange rate codes
 ### Error Handling
 
 ```python
-from bcb_sgs import fetch_series, SGSRateLimitError, SGSEmptyResponseError
+from bcbpy import fetch_series, SGSRateLimitError, SGSEmptyResponseError
 
 try:
     df = fetch_series(433, start_date="2024-01-01")
@@ -142,7 +148,7 @@ except SGSEmptyResponseError:
 Use any code directly by number or via the category dictionaries:
 
 ```python
-from bcb_sgs import INFLATION, GDP
+from bcbpy import INFLATION, GDP
 
 # These are equivalent:
 fetch_series(433)
@@ -158,14 +164,14 @@ fetch_series(INFLATION["IPCA"])
 ## Project Structure
 
 ```
-bcb-sgs/
-├── bcb_sgs/
+bcbpy/
+├── bcbpy/
 │   ├── __init__.py      # Public API exports
 │   ├── client.py        # API client functions and exceptions
 │   ├── codes.py         # 115 curated series codes in 14 categories
 │   └── constants.py     # Base URLs and API configuration
 ├── main.py              # CLI demo script
-├── requirements.txt
+├── pyproject.toml       # PyPI packaging metadata
 ├── BCB_API_REFERENCE.md # Full SGS + Olinda API reference guide
 └── README.md
 ```
@@ -176,4 +182,4 @@ All data is fetched from the [BCB Open Data Portal](https://dadosabertos.bcb.gov
 
 ## License
 
-This project uses open data provided by the Banco Central do Brasil.
+MIT (see [LICENSE](LICENSE)). The BCB data accessed through this client remains under ODbL; users must comply with ODbL when redistributing data.

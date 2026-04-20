@@ -7,7 +7,7 @@ Skip with: pytest -m "not integration"
 import pytest
 import pandas as pd
 
-from bcb_sgs import (
+from bcbpy import (
     fetch_series,
     fetch_last,
     fetch_multiple,

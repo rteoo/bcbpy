@@ -53,7 +53,7 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 
 - **Date range limit (since March 2025):** queries are capped at **10 years** max. Using date filters is now mandatory for large series.
 - **Rate limiting:** HTTP 429 on excessive requests (no official limit documented).
-- **Dates use DD/MM/YYYY** (Brazilian format). The `bcb_sgs` client also accepts YYYY-MM-DD for convenience.
+- **Dates use DD/MM/YYYY** (Brazilian format). The `bcbpy` client also accepts YYYY-MM-DD for convenience.
 - **HTTP 404** is returned for invalid series codes.
 - **Empty arrays** are returned when a valid series has no data in the requested range.
 
@@ -250,11 +250,11 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 
 ## Python Usage Examples
 
-### Using the bcb_sgs package (this project)
+### Using the bcbpy package (this project)
 
 ```python
-from bcb_sgs import fetch_series, fetch_last, fetch_multiple
-from bcb_sgs import INTEREST_RATES, EXCHANGE_RATES, INFLATION
+from bcbpy import fetch_series, fetch_last, fetch_multiple
+from bcbpy import INTEREST_RATES, EXCHANGE_RATES, INFLATION
 
 # Fetch CDI daily rate for 2024
 cdi = fetch_series(INTEREST_RATES["CDI_DAILY"], start_date="2024-01-01", end_date="2024-12-31")
@@ -270,7 +270,7 @@ df = fetch_multiple(
 )
 
 # Search available codes
-from bcb_sgs import search_codes, list_codes
+from bcbpy import search_codes, list_codes
 search_codes("IPCA")           # find all IPCA-related codes
 list_codes("INTEREST_RATES")   # list all interest rate codes
 ```

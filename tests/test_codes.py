@@ -1,6 +1,6 @@
-"""Tests for bcb_sgs.codes — series code registry."""
+"""Tests for bcbpy.codes — series code registry."""
 
-from bcb_sgs.codes import (
+from bcbpy.codes import (
     EXCHANGE_RATES,
     INTEREST_RATES,
     INFLATION,

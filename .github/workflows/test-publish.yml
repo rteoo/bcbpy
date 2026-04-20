@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/bcb-sgs
+      url: https://test.pypi.org/p/bcbpy
     permissions:
       id-token: write
     steps:
