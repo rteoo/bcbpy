@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.2.0] - 2026-04-20
+## [v2.0.0] - 2026-04-20
 
 ### Changed (breaking)
 - **Project renamed from `bcb-sgs` to `bcbpy`.** This is a breaking change for imports and installation:
