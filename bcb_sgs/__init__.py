@@ -15,6 +15,8 @@ Usage:
     df = fetch_multiple({"CDI": 12, "SELIC": 11}, start_date="2024-01-01")
 """
 
+__version__ = "1.0.0"
+
 from .client import (
     fetch_series,
     fetch_last,
@@ -46,6 +48,7 @@ from .codes import (
 )
 
 __all__ = [
+    "__version__",
     "fetch_series",
     "fetch_last",
     "fetch_multiple",
