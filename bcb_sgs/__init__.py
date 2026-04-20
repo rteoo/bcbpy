@@ -15,7 +15,7 @@ Usage:
     df = fetch_multiple({"CDI": 12, "SELIC": 11}, start_date="2024-01-01")
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.1"
 
 from .client import (
     fetch_series,

@@ -1,5 +1,31 @@
 # Changelog
 
+## [v1.1.1] - 2026-04-20
+
+### Added
+- **Two-stage publish pipeline** — separate workflows for staging and production:
+  - `.github/workflows/test-publish.yml` — manual dispatch only, publishes to **TestPyPI** (environment: `testpypi`)
+  - `.github/workflows/publish.yml` — triggers on `v*` tag push or GitHub release, publishes to **PyPI** (environment: `pypi`)
+
+### Changed
+- Trusted publishing now uses distinct GitHub environments for test vs production to prevent accidental cross-publication
+
+## [v1.1.0] - 2026-04-20
+
+### Added
+- **PyPI packaging** — `pyproject.toml` with PEP 621 metadata (SPDX license, loose dependency constraints, optional `dev` extras, classifiers, project URLs)
+- **MIT License** — `LICENSE` file for the client code (BCB data remains under ODbL, as noted in the license)
+- **`__version__`** attribute exported from `bcb_sgs`
+- **GitHub Actions workflow** — `.github/workflows/publish.yml` automates PyPI releases on `v*` tag push via trusted publishing (OIDC, no long-lived tokens)
+- **`.gitignore`** — standard Python ignore patterns (build artifacts, caches, venvs, secrets)
+
+### Changed
+- Minimum Python version raised from **3.8 → 3.10** (Python 3.8 reached end-of-life in October 2024)
+- README updates for repository structure and project name
+
+### Removed
+- Legacy standalone script `bcb_ptax_selic.py` (superseded by the `bcb_sgs` package since v1.0.0)
+
 ## [v1.0.0] - 2026-04-13
 
 ### Added

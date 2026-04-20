@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bcb-sgs"
-version = "1.0.0"
+version = "1.1.1"
 description = "Python client for the Banco Central do Brasil SGS (Sistema Gerenciador de Series Temporais) API with 115 curated series codes for Brazilian economic and financial time series."
 readme = "README.md"
 license = "MIT"
