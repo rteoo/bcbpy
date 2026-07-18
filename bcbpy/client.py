@@ -59,8 +59,37 @@ def _handle_response(resp):
     if resp.status_code == 429:
         raise SGSRateLimitError("BCB API rate limit exceeded. Wait and retry.")
     if resp.status_code == 404:
-        raise SGSError(f"Series not found (HTTP 404). Check the series code.")
+        raise SGSError("Series not found (HTTP 404). Check the series code.")
     resp.raise_for_status()
+
+
+def _build_dataframe(data, code):
+    """Convert an SGS JSON payload into a validated, date-indexed DataFrame.
+
+    Raises SGSError on a structurally invalid payload (non-list, or missing
+    the expected 'data'/'valor' fields) and SGSEmptyResponseError on an empty
+    series, rather than letting an opaque pandas error surface.
+    """
+    if not isinstance(data, list):
+        raise SGSError(
+            f"Unexpected response for series {code}: expected a JSON list, "
+            f"got {type(data).__name__}."
+        )
+    if not data:
+        raise SGSEmptyResponseError(f"No data returned for series {code}.")
+
+    df = pd.DataFrame(data)
+    missing = {"data", "valor"} - set(df.columns)
+    if missing:
+        raise SGSError(
+            f"Malformed response for series {code}: missing field(s) "
+            f"{', '.join(sorted(missing))}."
+        )
+
+    df["data"] = pd.to_datetime(df["data"], dayfirst=True)
+    df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
+    df.set_index("data", inplace=True)
+    return df
 
 
 def fetch_series(code, start_date=None, end_date=None):
@@ -91,15 +120,7 @@ def fetch_series(code, start_date=None, end_date=None):
     resp = requests.get(url, params=params, timeout=30)
     _handle_response(resp)
 
-    data = resp.json()
-    if not data:
-        raise SGSEmptyResponseError(f"No data returned for series {code}.")
-
-    df = pd.DataFrame(data)
-    df["data"] = pd.to_datetime(df["data"], dayfirst=True)
-    df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
-    df.set_index("data", inplace=True)
-    return df
+    return _build_dataframe(resp.json(), code)
 
 
 def fetch_last(code, n=10):
@@ -108,26 +129,24 @@ def fetch_last(code, n=10):
 
     Args:
         code: SGS series numeric code.
-        n: Number of most recent observations (default 10).
+        n: Number of most recent observations (default 10). Must be a
+           positive integer.
 
     Returns:
         pandas DataFrame indexed by date.
     """
+    # bool is an int subclass; reject it explicitly so fetch_last(code, True)
+    # doesn't silently become n=1.
+    if isinstance(n, bool) or not isinstance(n, int) or n < 1:
+        raise ValueError(f"n must be a positive integer, got {n!r}.")
+
     url = LAST_N_URL.format(code=code, n=n)
     params = {"formato": DEFAULT_FORMAT}
 
     resp = requests.get(url, params=params, timeout=30)
     _handle_response(resp)
 
-    data = resp.json()
-    if not data:
-        raise SGSEmptyResponseError(f"No data returned for series {code}.")
-
-    df = pd.DataFrame(data)
-    df["data"] = pd.to_datetime(df["data"], dayfirst=True)
-    df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
-    df.set_index("data", inplace=True)
-    return df
+    return _build_dataframe(resp.json(), code)
 
 
 def fetch_multiple(codes_dict, start_date=None, end_date=None):
@@ -143,6 +162,9 @@ def fetch_multiple(codes_dict, start_date=None, end_date=None):
     Returns:
         pandas DataFrame with one column per series, indexed by date.
     """
+    if not codes_dict:
+        raise ValueError("codes_dict is empty; provide at least one {name: code} pair.")
+
     frames = {}
     for name, code in codes_dict.items():
         try:
@@ -191,6 +213,9 @@ def search_codes(keyword):
         Dict of matching {name: code} pairs.
     """
     keyword = keyword.upper()
+    if not keyword:
+        print("No codes matching ''.")
+        return {}
     results = {name: code for name, code in ALL_CODES.items() if keyword in name}
     if not results:
         print(f"No codes matching '{keyword}'.")
