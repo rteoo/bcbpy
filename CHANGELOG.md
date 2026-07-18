@@ -1,5 +1,18 @@
 # Changelog
 
+## [v2.1.0] - 2026-07-18
+
+### Added
+- **Adversarial unit test suite** — expanded from 43 to 85 tests covering malformed API payloads, boundary date ranges, invalid `fetch_last` sizes, inverted ranges, and package metadata consistency.
+- **CI workflow** (`.github/workflows/tests.yml`) — runs the unit suite on Python 3.10–3.13 for every push and pull request to `main`.
+
+### Fixed
+- `fetch_last` now rejects non-positive, non-integer, and boolean `n` with a clear `ValueError` instead of issuing a malformed API request.
+- Malformed API responses (non-list payloads, or missing `data`/`valor` fields) now raise a descriptive `SGSError` instead of an opaque pandas error.
+- `fetch_multiple({})` raises `ValueError` for empty input instead of a misleading "no data returned" error.
+- `search_codes("")` returns no matches instead of the entire code catalog.
+- Realigned `__version__`, which had drifted out of sync with the packaged version.
+
 ## [v2.0.0] - 2026-04-20
 
 ### Changed (breaking)
