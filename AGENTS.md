@@ -54,7 +54,7 @@ pytest under `tests/` (`test_client.py`, `test_codes.py`, `test_integration.py`)
 ## Known Drift (don't "fix" into existence)
 
 - README still references `pip install -r requirements.txt` and a `main.py` CLI demo — both were **deleted** (commit `cc4f0aa`). Use the `[dev]` extra; there is no `main.py`.
-- `git remote origin` is `github.com/rteoo/bcbpy`, but `pyproject.toml` URLs and CHANGELOG point to `github.com/TeodoroRodrigo/bcbpy`. Confirm which is canonical with a human before propagating either.
+- Canonical repo is `github.com/rteoo/bcbpy` (the live remote, the `pyproject.toml` URLs, and the PyPI project all agree). Older `CHANGELOG.md` entries reference the former `github.com/TeodoroRodrigo/bcbpy` path — that is historical and must stay as written.
 - Licensing duality: code is MIT; data fetched via the client remains under ODbL (see `LICENSE`) — relevant to any data-redistribution feature/doc.
 
 ## Git
