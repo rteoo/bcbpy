@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bcbpy"
-version = "2.0.0"
+dynamic = ["version"]
 description = "Python client for the Banco Central do Brasil SGS (Sistema Gerenciador de Series Temporais) API with 115 curated series codes for Brazilian economic and financial time series."
 readme = "README.md"
 license = "MIT"
@@ -56,10 +56,13 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/TeodoroRodrigo/bcbpy"
-Repository = "https://github.com/TeodoroRodrigo/bcbpy"
-Issues = "https://github.com/TeodoroRodrigo/bcbpy/issues"
-Changelog = "https://github.com/TeodoroRodrigo/bcbpy/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/rteoo/bcbpy"
+Repository = "https://github.com/rteoo/bcbpy"
+Issues = "https://github.com/rteoo/bcbpy/issues"
+Changelog = "https://github.com/rteoo/bcbpy/blob/main/CHANGELOG.md"
+
+[tool.setuptools.dynamic]
+version = { attr = "bcbpy.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["bcbpy*"]

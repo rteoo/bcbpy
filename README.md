@@ -13,7 +13,7 @@ pip install bcbpy
 Or from source:
 
 ```bash
-git clone https://github.com/TeodoroRodrigo/bcbpy.git
+git clone https://github.com/rteoo/bcbpy.git
 cd bcbpy
 pip install .
 ```
