@@ -40,16 +40,16 @@ Load-bearing behavior to preserve:
 
 ## Testing Conventions
 
-pytest under `tests/` (`test_client.py`, `test_codes.py`, `test_integration.py`); classes `Test*`, methods `test_*`. The `integration` marker is registered in `pyproject.toml` and applied module-wide in `test_integration.py` (opt-in via `-m integration`, excluded via `-m "not integration"`). No coverage tooling.
+pytest under `tests/` (`test_client.py`, `test_codes.py`, `test_package.py`, `test_integration.py`); classes `Test*`, methods `test_*`. The `integration` marker is registered in `pyproject.toml` and applied module-wide in `test_integration.py` (opt-in via `-m integration`, excluded via `-m "not integration"`). No coverage tooling.
 
 - Unit tests mock `requests.get` (or `bcbpy.client.fetch_series` for `fetch_multiple`) via `unittest.mock.patch`. New client functions get a mocked unit test and, if they hit the network, a matching `@pytest.mark.integration` test.
 - Code registry (`codes.py`): keys must be `UPPER_SNAKE_CASE`, values unique positive ints across all categories — enforced by `tests/test_codes.py`. Adding a series code means updating the category dict (`CATEGORIES`/`ALL_CODES` stay auto-derived) and bumping the corresponding `test_category_sizes` count assertion.
 
 ## Release & CI
 
-- **No test/lint CI gate exists** — the only workflows (`.github/workflows/publish.yml`, `test-publish.yml`) are build-and-publish. "Tests pass" is verified manually via `pytest`.
+- **Test CI:** `.github/workflows/tests.yml` runs the unit subset (`pytest -m "not integration"`) on Python 3.10–3.13 for every push and PR to `main`. Integration tests stay out of CI (live API). No lint/type-check gate exists.
 - Publishing is CI-driven and OIDC-based (PyPI trusted publishing): a `v*` tag push or a published GitHub Release triggers `publish.yml`; TestPyPI staging is manual `workflow_dispatch` on `test-publish.yml`. **Do not** hand-run `twine upload` or manage PyPI tokens.
-- **Version-bump discipline:** a release must update both `pyproject.toml` `version` and `bcbpy/__init__.py` `__version__` together. These are currently out of sync (`pyproject.toml` 2.0.0 vs `__init__.py` 1.2.0) — reconcile opportunistically; `pyproject.toml` is authoritative for packaging.
+- **Version-bump discipline:** the packaged version is dynamic — `pyproject.toml` reads it from `bcbpy/__init__.py` `__version__` via `[tool.setuptools.dynamic]`, so `__version__` is the single source of truth. A release bumps only `__version__`, adds a `CHANGELOG.md` entry, and pushes a matching `v*` tag.
 
 ## Known Drift (don't "fix" into existence)
 
