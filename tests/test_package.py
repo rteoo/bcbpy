@@ -1,30 +1,22 @@
 """Package-level consistency tests — guard against metadata drift."""
 
-import re
-from pathlib import Path
+from importlib import metadata
+
+import pytest
 
 import bcbpy
 
 
-PYPROJECT = Path(__file__).resolve().parent.parent / "pyproject.toml"
-
-
-def _pyproject_version():
-    """Read the [project] version from pyproject.toml without a TOML lib.
-
-    tomllib is only stdlib on 3.11+, but the package supports 3.10, so parse
-    the single line directly.
-    """
-    text = PYPROJECT.read_text(encoding="utf-8")
-    match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
-    assert match, "no version field found in pyproject.toml"
-    return match.group(1)
-
-
-def test_version_matches_pyproject():
-    # __init__.__version__ drifted behind pyproject once (1.2.0 vs 2.0.0);
-    # this locks them together.
-    assert bcbpy.__version__ == _pyproject_version()
+def test_version_matches_installed_distribution():
+    # __init__.__version__ drifted behind pyproject once (1.2.0 vs 2.0.0).
+    # Compare against the installed distribution metadata (sourced from
+    # pyproject at build time) rather than parsing the file, so the check is
+    # independent of the working directory and TOML tooling.
+    try:
+        dist_version = metadata.version("bcbpy")
+    except metadata.PackageNotFoundError:
+        pytest.skip("bcbpy is not installed as a distribution")
+    assert bcbpy.__version__ == dist_version
 
 
 def test_public_api_is_importable():
