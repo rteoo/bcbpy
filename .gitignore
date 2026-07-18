@@ -47,6 +47,3 @@ Thumbs.db
 .env
 .env.local
 *.pem
-
-# Claude Code
-CLAUDE.md

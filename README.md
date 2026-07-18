@@ -15,7 +15,7 @@ Or from source:
 ```bash
 git clone https://github.com/TeodoroRodrigo/bcbpy.git
 cd bcbpy
-pip install -r requirements.txt
+pip install .
 ```
 
 ### Requirements
@@ -170,7 +170,6 @@ bcbpy/
 │   ├── client.py        # API client functions and exceptions
 │   ├── codes.py         # 115 curated series codes in 14 categories
 │   └── constants.py     # Base URLs and API configuration
-├── main.py              # CLI demo script
 ├── pyproject.toml       # PyPI packaging metadata
 ├── BCB_API_REFERENCE.md # Full SGS + Olinda API reference guide
 └── README.md
