@@ -1,5 +1,10 @@
 # Changelog
 
+## [v2.1.1] - 2026-07-18
+
+### Changed
+- Documentation only — refreshed `AGENTS.md` to reflect the test CI workflow, dynamic versioning (`__version__` as the single source of truth), and the canonical `rteoo/bcbpy` repository. No library, API, or packaged-code changes.
+
 ## [v2.1.0] - 2026-07-18
 
 ### Added
