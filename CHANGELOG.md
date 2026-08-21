@@ -1,5 +1,16 @@
 # Changelog
 
+## [v2.2.0] - 2026-08-20
+
+### Added
+- **`fetch_raw` / `fetch_raw_range` / `RawResult`** — warehouse-facing API returning payload bytes, canonical URL, query params, response headers, fetch time, series identity, SHA-256, and library/parser version (`sgs-json-1`).
+- Injectable **`transport=`** GET callable on fetch helpers for deterministic tests.
+- **`fetch_raw_range`** splits windows longer than the SGS 10-year limit into bounded partitions without duplicating the boundary date. Empty partition bodies are kept.
+- **`SGSRateLimitError.retry_after`** (and response headers) parsed from `Retry-After`. Failures are not swallowed or auto-retried.
+
+### Changed
+- `fetch_series`, `fetch_last`, and `fetch_multiple` still return DataFrames and still enforce the 10-year single-call limit. Longer ranges stay on `fetch_raw_range`.
+
 ## [v2.1.1] - 2026-07-18
 
 ### Changed

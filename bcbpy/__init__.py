@@ -15,18 +15,22 @@ Usage:
     df = fetch_multiple({"CDI": 12, "SELIC": 11}, start_date="2024-01-01")
 """
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"
 
+from .artifacts import RawResult
 from .client import (
     fetch_series,
     fetch_last,
     fetch_multiple,
+    fetch_raw,
+    fetch_raw_range,
     list_codes,
     search_codes,
     SGSError,
     SGSRateLimitError,
     SGSEmptyResponseError,
 )
+from .constants import PARSER_VERSION
 
 from .codes import (
     EXCHANGE_RATES,
@@ -49,9 +53,13 @@ from .codes import (
 
 __all__ = [
     "__version__",
+    "PARSER_VERSION",
+    "RawResult",
     "fetch_series",
     "fetch_last",
     "fetch_multiple",
+    "fetch_raw",
+    "fetch_raw_range",
     "list_codes",
     "search_codes",
     "SGSError",

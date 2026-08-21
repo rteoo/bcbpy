@@ -81,6 +81,27 @@ from bcbpy import fetch_multiple
 df = fetch_multiple({"CDI": 12, "SELIC": 11, "TR": 226}, start_date="2024-01-01")
 ```
 
+#### `fetch_raw(code, start_date=None, end_date=None, transport=None)`
+
+Fetch one SGS window as a `RawResult` (payload bytes plus request metadata). Same 10-year single-call limit as `fetch_series`. Does not parse the body.
+
+```python
+from bcbpy import fetch_raw
+
+raw = fetch_raw(12, start_date="2024-01-01", end_date="2024-01-31")
+print(raw.sha256, raw.source_url, raw.params)
+```
+
+#### `fetch_raw_range(code, start_date=None, end_date=None, transport=None)`
+
+Like `fetch_raw`, but splits ranges longer than 10 years into bounded partitions. Adjacent partitions do not share a calendar day.
+
+```python
+from bcbpy import fetch_raw_range
+
+parts = fetch_raw_range(433, start_date="2010-01-01", end_date="2024-12-31")
+```
+
 #### `list_codes(category=None)`
 
 Print all available series codes. Pass a category name to filter.
@@ -108,7 +129,7 @@ results = search_codes("USD")       # finds USD exchange rate codes
 | Exception | When |
 |-----------|------|
 | `SGSError` | Base exception for all API errors |
-| `SGSRateLimitError` | API returns HTTP 429 (too many requests) |
+| `SGSRateLimitError` | API returns HTTP 429 (too many requests). `retry_after` is set from `Retry-After` when present. |
 | `SGSEmptyResponseError` | No data returned for the given query |
 
 ### Error Handling
@@ -157,8 +178,8 @@ fetch_series(INFLATION["IPCA"])
 
 ## API Limits
 
-- **Date range:** max 10 years per query (BCB restriction since March 2025)
-- **Rate limiting:** HTTP 429 on excessive requests (no official limit documented)
+- **Date range:** max 10 years per single query (BCB restriction since March 2025). `fetch_series` / `fetch_raw` still enforce that limit. `fetch_raw_range` splits longer windows into bounded requests.
+- **Rate limiting:** HTTP 429 on excessive requests (no official limit documented). `SGSRateLimitError.retry_after` carries `Retry-After` when the API sends it; the client does not auto-retry.
 - **Date formats:** the client accepts both `YYYY-MM-DD` and `DD/MM/YYYY`
 
 ## Project Structure
@@ -167,6 +188,7 @@ fetch_series(INFLATION["IPCA"])
 bcbpy/
 ├── bcbpy/
 │   ├── __init__.py      # Public API exports
+│   ├── artifacts.py     # RawResult descriptor
 │   ├── client.py        # API client functions and exceptions
 │   ├── codes.py         # 115 curated series codes in 14 categories
 │   └── constants.py     # Base URLs and API configuration
