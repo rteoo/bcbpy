@@ -1,6 +1,6 @@
 """Tests for bcbpy.client — API client functions (mocked, no network calls)."""
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from unittest.mock import patch, MagicMock
 
 import pandas as pd
@@ -21,7 +21,6 @@ from bcbpy.client import (
     SGSRateLimitError,
     SGSEmptyResponseError,
 )
-from bcbpy.constants import MAX_DATE_RANGE_YEARS
 
 
 # ---- _format_date ----
@@ -99,19 +98,22 @@ class TestValidateDateRange:
     def test_exactly_10_years_passes(self):
         _validate_date_range("01/01/2015", "31/12/2024")
 
+    def test_calendar_anniversary_is_the_ten_year_boundary(self):
+        _validate_date_range("01/01/2015", "01/01/2025")
+        with pytest.raises(ValueError, match="10-year API limit"):
+            _validate_date_range("01/01/2015", "02/01/2025")
+
+    def test_february_29_uses_february_28_in_non_leap_year(self):
+        _validate_date_range("29/02/2012", "28/02/2022")
+        with pytest.raises(ValueError, match="10-year API limit"):
+            _validate_date_range("29/02/2012", "01/03/2022")
+
     def test_same_day_passes(self):
         _validate_date_range("01/01/2024", "01/01/2024")
 
-    def test_boundary_at_max_delta_passes(self):
-        # The ceiling is MAX_DATE_RANGE_YEARS * 366 days; the last allowed day
-        # must pass and one day beyond must fail (locks the exact boundary).
+    def test_one_day_past_calendar_boundary_raises(self):
         start = datetime(2015, 1, 1)
-        edge = start + timedelta(days=MAX_DATE_RANGE_YEARS * 366)
-        _validate_date_range(start.strftime("%d/%m/%Y"), edge.strftime("%d/%m/%Y"))
-
-    def test_one_day_past_boundary_raises(self):
-        start = datetime(2015, 1, 1)
-        over = start + timedelta(days=MAX_DATE_RANGE_YEARS * 366 + 1)
+        over = datetime(2025, 1, 2)
         with pytest.raises(ValueError, match="10-year API limit"):
             _validate_date_range(start.strftime("%d/%m/%Y"), over.strftime("%d/%m/%Y"))
 

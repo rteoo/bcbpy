@@ -67,12 +67,26 @@ def _validate_date_range(start_date, end_date):
     end = datetime.strptime(end_date, DATE_FORMAT)
     if end < start:
         raise ValueError(f"end_date ({end_date}) is before start_date ({start_date})")
-    max_delta = timedelta(days=MAX_DATE_RANGE_YEARS * 366)
-    if (end - start) > max_delta:
+    if end > _calendar_anniversary(start, MAX_DATE_RANGE_YEARS):
         raise ValueError(
             f"Date range exceeds {MAX_DATE_RANGE_YEARS}-year API limit. "
             f"Split your query into smaller ranges."
         )
+
+
+def _calendar_anniversary(value, years):
+    """Return ``value`` moved by calendar years, preserving valid month/day.
+
+    February 29 has no counterpart in a non-leap target year.  Treating it as
+    February 28 keeps the range boundary deterministic and matches the API's
+    calendar-year limit rather than approximating years as 366-day windows.
+    """
+    try:
+        return value.replace(year=value.year + years)
+    except ValueError:
+        # The only invalid replacement for a date is February 29 in a
+        # non-leap target year.
+        return value.replace(year=value.year + years, day=28)
 
 
 def _bound_dates(start_date, end_date):
@@ -178,10 +192,9 @@ def _date_partitions(start, end):
     """
     start_dt = datetime.strptime(start, DATE_FORMAT)
     end_dt = datetime.strptime(end, DATE_FORMAT)
-    max_delta = timedelta(days=MAX_DATE_RANGE_YEARS * 366)
     cursor = start_dt
     while cursor <= end_dt:
-        chunk_end = min(cursor + max_delta, end_dt)
+        chunk_end = min(_calendar_anniversary(cursor, MAX_DATE_RANGE_YEARS), end_dt)
         yield cursor.strftime(DATE_FORMAT), chunk_end.strftime(DATE_FORMAT)
         if chunk_end >= end_dt:
             return
