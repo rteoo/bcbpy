@@ -1,12 +1,23 @@
 """BCB SGS API Client — fetch time series data from Banco Central do Brasil."""
 
-from datetime import datetime, date, timedelta
+import hashlib
+from datetime import date, datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 
 import pandas as pd
 import requests
 
-from .constants import BASE_URL, LAST_N_URL, DATE_FORMAT, DEFAULT_FORMAT, MAX_DATE_RANGE_YEARS
+from .artifacts import RawResult
 from .codes import ALL_CODES, CATEGORIES
+from .constants import (
+    BASE_URL,
+    DATE_FORMAT,
+    DEFAULT_FORMAT,
+    HTTP_TIMEOUT,
+    LAST_N_URL,
+    MAX_DATE_RANGE_YEARS,
+    PARSER_VERSION,
+)
 
 
 class SGSError(Exception):
@@ -14,7 +25,17 @@ class SGSError(Exception):
 
 
 class SGSRateLimitError(SGSError):
-    """Raised when the API returns HTTP 429."""
+    """Raised when the API returns HTTP 429.
+
+    ``retry_after`` is seconds parsed from ``Retry-After`` when present.
+    Callers retry; this client does not swallow the failure.
+    """
+
+    def __init__(self, message="BCB API rate limit exceeded. Wait and retry.", retry_after=None, status_code=429, headers=None):
+        super().__init__(message)
+        self.retry_after = retry_after
+        self.status_code = status_code
+        self.headers = headers if headers is not None else {}
 
 
 class SGSEmptyResponseError(SGSError):
@@ -54,13 +75,141 @@ def _validate_date_range(start_date, end_date):
         )
 
 
+def _bound_dates(start_date, end_date):
+    """Normalize dates; default end to today when only start is given."""
+    start = _format_date(start_date)
+    end = _format_date(end_date) if end_date else (
+        _format_date(date.today()) if start_date else None
+    )
+    return start, end
+
+
+def _headers_map(headers):
+    """Lowercased header dict. Ignores mock objects that are not real mappings."""
+    if headers is None:
+        return {}
+    try:
+        size = len(headers)
+    except Exception:
+        return {}
+    if not isinstance(size, int) or size < 0 or size > 10000:
+        return {}
+    mapped = {}
+    try:
+        for key, value in headers.items():
+            mapped[str(key).lower()] = str(value)
+    except Exception:
+        return {}
+    return mapped
+
+
+def _retry_after_seconds(headers):
+    """Parse Retry-After as seconds. HTTP-date values become a remaining delay."""
+    mapped = _headers_map(headers)
+    raw = mapped.get("retry-after")
+    if not raw:
+        return None
+    try:
+        return float(raw)
+    except ValueError:
+        pass
+    try:
+        when = parsedate_to_datetime(raw)
+        remaining = when.timestamp() - datetime.now(timezone.utc).timestamp()
+        return max(remaining, 0.0)
+    except (TypeError, ValueError, OverflowError):
+        return None
+
+
 def _handle_response(resp):
     """Check response status and raise appropriate errors."""
     if resp.status_code == 429:
-        raise SGSRateLimitError("BCB API rate limit exceeded. Wait and retry.")
+        headers = getattr(resp, "headers", None)
+        raise SGSRateLimitError(
+            "BCB API rate limit exceeded. Wait and retry.",
+            retry_after=_retry_after_seconds(headers),
+            status_code=429,
+            headers=_headers_map(headers),
+        )
     if resp.status_code == 404:
         raise SGSError("Series not found (HTTP 404). Check the series code.")
     resp.raise_for_status()
+
+
+def _http_get(url, params, transport=None):
+    getter = requests.get if transport is None else transport
+    return getter(url, params=params, timeout=HTTP_TIMEOUT)
+
+
+def _request(url, params, transport=None):
+    resp = _http_get(url, params, transport=transport)
+    _handle_response(resp)
+    return resp
+
+
+def _response_payload(resp):
+    content = getattr(resp, "content", None)
+    if isinstance(content, bytes):
+        return content
+    if isinstance(content, str):
+        return content.encode("utf-8")
+    text = getattr(resp, "text", None)
+    if isinstance(text, str):
+        return text.encode("utf-8")
+    raise SGSError("Response has no body.")
+
+
+def _series_request(code, start_date, end_date):
+    start, end = _bound_dates(start_date, end_date)
+    url = BASE_URL.format(code=code)
+    params = {"formato": DEFAULT_FORMAT}
+    if start:
+        params["dataInicial"] = start
+    if end:
+        params["dataFinal"] = end
+    return start, end, url, params
+
+
+def _date_partitions(start, end):
+    """Inclusive DD/MM/YYYY windows that each satisfy the 10-year single-call limit.
+
+    Adjacent windows do not share a calendar day, so composed ranges do not
+    duplicate the boundary observation.
+    """
+    start_dt = datetime.strptime(start, DATE_FORMAT)
+    end_dt = datetime.strptime(end, DATE_FORMAT)
+    max_delta = timedelta(days=MAX_DATE_RANGE_YEARS * 366)
+    cursor = start_dt
+    while cursor <= end_dt:
+        chunk_end = min(cursor + max_delta, end_dt)
+        yield cursor.strftime(DATE_FORMAT), chunk_end.strftime(DATE_FORMAT)
+        if chunk_end >= end_dt:
+            return
+        cursor = chunk_end + timedelta(days=1)
+
+
+def _library_version():
+    from . import __version__
+    return __version__
+
+
+def _raw_result(code, url, params, resp):
+    payload = _response_payload(resp)
+    headers = _headers_map(getattr(resp, "headers", None))
+    return RawResult(
+        payload=payload,
+        source_url=url,
+        params=dict(params),
+        http_headers=headers,
+        fetched_at=datetime.now(timezone.utc),
+        series_code=code,
+        library_version=_library_version(),
+        parser_version=PARSER_VERSION,
+        sha256=hashlib.sha256(payload).hexdigest(),
+        byte_size=len(payload),
+        status_code=getattr(resp, "status_code", 200) or 200,
+        retry_after=_retry_after_seconds(getattr(resp, "headers", None)),
+    )
 
 
 def _build_dataframe(data, code):
@@ -92,7 +241,7 @@ def _build_dataframe(data, code):
     return df
 
 
-def fetch_series(code, start_date=None, end_date=None):
+def fetch_series(code, start_date=None, end_date=None, transport=None):
     """
     Fetch a full time series from SGS.
 
@@ -100,30 +249,21 @@ def fetch_series(code, start_date=None, end_date=None):
         code: SGS series numeric code (e.g. 12 for CDI).
         start_date: Optional start date (YYYY-MM-DD, DD/MM/YYYY, or date object).
         end_date: Optional end date. Defaults to today if start_date is provided.
+        transport: Optional GET callable ``(url, params=, timeout=)`` for tests.
 
     Returns:
         pandas DataFrame indexed by date with a 'valor' column.
+
+    The 10-year single-call limit still applies. Use ``fetch_raw_range`` to
+    compose longer windows as multiple bounded requests.
     """
-    start = _format_date(start_date)
-    end = _format_date(end_date) if end_date else (
-        _format_date(date.today()) if start_date else None
-    )
+    start, end, url, params = _series_request(code, start_date, end_date)
     _validate_date_range(start, end)
-
-    url = BASE_URL.format(code=code)
-    params = {"formato": DEFAULT_FORMAT}
-    if start:
-        params["dataInicial"] = start
-    if end:
-        params["dataFinal"] = end
-
-    resp = requests.get(url, params=params, timeout=30)
-    _handle_response(resp)
-
+    resp = _request(url, params, transport=transport)
     return _build_dataframe(resp.json(), code)
 
 
-def fetch_last(code, n=10):
+def fetch_last(code, n=10, transport=None):
     """
     Fetch the last N observations of a series.
 
@@ -131,6 +271,7 @@ def fetch_last(code, n=10):
         code: SGS series numeric code.
         n: Number of most recent observations (default 10). Must be a
            positive integer.
+        transport: Optional GET callable ``(url, params=, timeout=)`` for tests.
 
     Returns:
         pandas DataFrame indexed by date.
@@ -143,13 +284,11 @@ def fetch_last(code, n=10):
     url = LAST_N_URL.format(code=code, n=n)
     params = {"formato": DEFAULT_FORMAT}
 
-    resp = requests.get(url, params=params, timeout=30)
-    _handle_response(resp)
-
+    resp = _request(url, params, transport=transport)
     return _build_dataframe(resp.json(), code)
 
 
-def fetch_multiple(codes_dict, start_date=None, end_date=None):
+def fetch_multiple(codes_dict, start_date=None, end_date=None, transport=None):
     """
     Fetch multiple series and merge into a single DataFrame.
 
@@ -158,6 +297,7 @@ def fetch_multiple(codes_dict, start_date=None, end_date=None):
                     Example: {"CDI": 12, "SELIC": 11}
         start_date: Optional start date.
         end_date: Optional end date.
+        transport: Optional GET callable forwarded to ``fetch_series``.
 
     Returns:
         pandas DataFrame with one column per series, indexed by date.
@@ -168,13 +308,50 @@ def fetch_multiple(codes_dict, start_date=None, end_date=None):
     frames = {}
     for name, code in codes_dict.items():
         try:
-            df = fetch_series(code, start_date, end_date)
+            df = fetch_series(code, start_date, end_date, transport=transport)
             frames[name] = df["valor"]
         except SGSEmptyResponseError:
             print(f"Warning: no data for {name} (code {code}), skipping.")
     if not frames:
         raise SGSEmptyResponseError("No data returned for any of the requested series.")
     return pd.DataFrame(frames)
+
+
+def fetch_raw(code, start_date=None, end_date=None, transport=None):
+    """
+    Fetch one SGS window as a ``RawResult`` (payload bytes + request metadata).
+
+    Honors the same 10-year single-call limit as ``fetch_series``. Does not
+    parse the body: HTTP 200 with ``[]`` or malformed JSON is returned so a
+    warehouse can register the bytes.
+    """
+    start, end, url, params = _series_request(code, start_date, end_date)
+    _validate_date_range(start, end)
+    resp = _request(url, params, transport=transport)
+    return _raw_result(code, url, params, resp)
+
+
+def fetch_raw_range(code, start_date=None, end_date=None, transport=None):
+    """
+    Fetch a date window as one or more bounded ``RawResult`` partitions.
+
+    Ranges longer than the SGS 10-year limit are split. Adjacent partitions
+    start the day after the previous end so boundary dates are not duplicated.
+    Empty partition bodies are returned, not skipped.
+    """
+    start, end = _bound_dates(start_date, end_date)
+    if start and end:
+        start_dt = datetime.strptime(start, DATE_FORMAT)
+        end_dt = datetime.strptime(end, DATE_FORMAT)
+        if end_dt < start_dt:
+            raise ValueError(f"end_date ({end}) is before start_date ({start})")
+        windows = list(_date_partitions(start, end))
+    else:
+        windows = [(start, end)]
+    return [
+        fetch_raw(code, start_date=part_start, end_date=part_end, transport=transport)
+        for part_start, part_end in windows
+    ]
 
 
 def list_codes(category=None):
