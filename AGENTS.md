@@ -4,7 +4,7 @@ Canonical agent contract for this repository — it guides Claude Code, Codex, a
 
 ## Project
 
-`bcbpy` is a Python client library for the **BCB SGS** (Banco Central do Brasil — Sistema Gerenciador de Séries Temporais) API. It fetches Brazilian economic/financial time series (FX, interest rates, inflation, GDP, employment, …) as pandas DataFrames, and ships a curated registry of 115 SGS series codes across 14 categories. Public API (`bcbpy/__init__.py`): `fetch_series`, `fetch_last`, `fetch_multiple`, `list_codes`, `search_codes`, plus `SGSError` / `SGSRateLimitError` / `SGSEmptyResponseError`. Library only — no CLI, no `__main__`.
+`bcbpy` is a Python client library for the **BCB SGS** (Banco Central do Brasil — Sistema Gerenciador de Séries Temporais) API. It fetches Brazilian economic/financial time series (FX, interest rates, inflation, GDP, employment, …) as pandas DataFrames, and ships a curated registry of 115 SGS series codes across 14 categories. Public API (`bcbpy/__init__.py`): `fetch_series`, `fetch_last`, `fetch_multiple`, `fetch_raw`, `fetch_raw_range`, `RawResult`, `list_codes`, `search_codes`, plus `SGSError` / `SGSRateLimitError` / `SGSEmptyResponseError`. Library only — no CLI, no `__main__`.
 
 ## Stack
 
@@ -27,22 +27,24 @@ python -m build                                      # build sdist+wheel (releas
 
 ## Architecture
 
-Three-module package, layered:
+Four-module package, layered:
 
-- `bcbpy/constants.py` — `BASE_URL`, `LAST_N_URL`, `DATE_FORMAT`, `MAX_DATE_RANGE_YEARS`.
+- `bcbpy/constants.py` — `BASE_URL`, `LAST_N_URL`, `DATE_FORMAT`, `MAX_DATE_RANGE_YEARS`, `PARSER_VERSION`.
 - `bcbpy/codes.py` — pure data: 115 SGS codes in 14 category dicts + derived `CATEGORIES` / `ALL_CODES`. Hand-curated, not generated.
-- `bcbpy/client.py` — all HTTP + DataFrame logic and the public functions/exceptions; imports from both modules.
+- `bcbpy/artifacts.py` — public `RawResult` descriptor (payload bytes, URL, params, headers, fetch time, series identity, library/parser version).
+- `bcbpy/client.py` — HTTP, DataFrame conversion, raw fetch, and bounded range composition; imports from the other modules.
 - `bcbpy/__init__.py` — re-exports the public surface; keep `__all__` in sync when adding/removing exports.
 
 Load-bearing behavior to preserve:
 - `_format_date` accepts both `YYYY-MM-DD` and `DD/MM/YYYY` and normalizes to BCB's `DD/MM/YYYY`. Keep the dual-format acceptance and the `DATE_FORMAT` constant.
-- `_validate_date_range` enforces a client-side 10-year query limit mirroring the real BCB restriction — do not silently remove it.
+- `_validate_date_range` enforces a client-side 10-year query limit mirroring the real BCB restriction — do not silently remove it from `fetch_series` / `fetch_raw`. Longer windows belong on `fetch_raw_range`.
+- `SGSRateLimitError` exposes `retry_after` / response headers. Do not auto-retry or swallow 429.
 
 ## Testing Conventions
 
-pytest under `tests/` (`test_client.py`, `test_codes.py`, `test_package.py`, `test_integration.py`); classes `Test*`, methods `test_*`. The `integration` marker is registered in `pyproject.toml` and applied module-wide in `test_integration.py` (opt-in via `-m integration`, excluded via `-m "not integration"`). No coverage tooling.
+pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_package.py`, `test_integration.py`); classes `Test*`, methods `test_*`. The `integration` marker is registered in `pyproject.toml` and applied module-wide in `test_integration.py` (opt-in via `-m integration`, excluded via `-m "not integration"`). No coverage tooling.
 
-- Unit tests mock `requests.get` (or `bcbpy.client.fetch_series` for `fetch_multiple`) via `unittest.mock.patch`. New client functions get a mocked unit test and, if they hit the network, a matching `@pytest.mark.integration` test.
+- Unit tests mock `requests.get` (or inject a `transport=` callable, or `bcbpy.client.fetch_series` for `fetch_multiple`) via `unittest.mock.patch`. New client functions get a mocked unit test and, if they hit the network, a matching `@pytest.mark.integration` test.
 - Code registry (`codes.py`): keys must be `UPPER_SNAKE_CASE`, values unique positive ints across all categories — enforced by `tests/test_codes.py`. Adding a series code means updating the category dict (`CATEGORIES`/`ALL_CODES` stay auto-derived) and bumping the corresponding `test_category_sizes` count assertion.
 
 ## Release & CI

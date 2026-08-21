@@ -4,6 +4,8 @@ Run with: pytest tests/test_integration.py -m integration
 Skip with: pytest -m "not integration"
 """
 
+import json
+
 import pytest
 import pandas as pd
 
@@ -11,6 +13,7 @@ from bcbpy import (
     fetch_series,
     fetch_last,
     fetch_multiple,
+    fetch_raw,
     INTEREST_RATES,
     EXCHANGE_RATES,
     INFLATION,
@@ -36,6 +39,19 @@ class TestFetchSeriesLive:
     def test_usd_daily(self):
         df = fetch_series(EXCHANGE_RATES["USD_SALE_DAILY"], start_date="2024-06-01", end_date="2024-06-30")
         assert len(df) > 15  # ~22 business days in June
+
+
+class TestFetchRawLive:
+    def test_cdi_daily_payload(self):
+        result = fetch_raw(INTEREST_RATES["CDI_DAILY"], start_date="2024-01-01", end_date="2024-01-31")
+        assert result.series_code == INTEREST_RATES["CDI_DAILY"]
+        assert result.status_code == 200
+        assert result.payload.startswith(b"[")
+        data = json.loads(result.payload)
+        assert isinstance(data, list)
+        assert data
+        assert "data" in data[0]
+        assert "valor" in data[0]
 
 
 class TestFetchLastLive:
