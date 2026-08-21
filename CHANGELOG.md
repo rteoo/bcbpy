@@ -11,6 +11,11 @@
 ### Changed
 - `fetch_series`, `fetch_last`, and `fetch_multiple` still return DataFrames and still enforce the 10-year single-call limit. Longer ranges stay on `fetch_raw_range`.
 
+### Fixed
+- Ten-year range validation and `fetch_raw_range` partitioning now use a
+  calendar anniversary instead of a fixed 366-day approximation. February 29
+  uses February 28 in non-leap target years.
+
 ## [v2.1.1] - 2026-07-18
 
 ### Changed

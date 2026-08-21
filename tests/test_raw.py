@@ -17,7 +17,7 @@ from bcbpy.client import (
     fetch_series,
     SGSRateLimitError,
 )
-from bcbpy.constants import BASE_URL, MAX_DATE_RANGE_YEARS
+from bcbpy.constants import BASE_URL
 
 
 PAYLOAD = b'[{"data":"10/04/2026","valor":"0.054"}]'
@@ -125,7 +125,7 @@ class TestFetchRawRange:
 
     def test_long_range_splits_on_ten_year_boundary(self):
         start = datetime(2010, 1, 1)
-        end = start + timedelta(days=MAX_DATE_RANGE_YEARS * 366 + 1)
+        end = datetime(2020, 1, 2)
         calls = []
         results = fetch_raw_range(
             433,
@@ -145,7 +145,7 @@ class TestFetchRawRange:
 
     def test_exact_max_span_is_one_call(self):
         start = datetime(2015, 1, 1)
-        end = start + timedelta(days=MAX_DATE_RANGE_YEARS * 366)
+        end = datetime(2025, 1, 1)
         calls = []
         results = fetch_raw_range(
             12,
@@ -168,6 +168,10 @@ class TestFetchRawRange:
             right = datetime.strptime(windows[i + 1][0], "%d/%m/%Y")
             assert right == left + timedelta(days=1)
 
+    def test_leap_day_partition_uses_february_28_anniversary(self):
+        windows = list(_date_partitions("29/02/2012", "01/03/2022"))
+        assert windows == [("29/02/2012", "28/02/2022"), ("01/03/2022", "01/03/2022")]
+
     def test_empty_partition_is_kept(self):
         payloads = [EMPTY_PAYLOAD, PAYLOAD]
         calls = []
@@ -183,7 +187,7 @@ class TestFetchRawRange:
             return resp
 
         start = datetime(2010, 1, 1)
-        end = start + timedelta(days=MAX_DATE_RANGE_YEARS * 366 + 1)
+        end = datetime(2020, 1, 2)
         results = fetch_raw_range(12, start_date=start.date(), end_date=end.date(), transport=getter)
         assert len(results) == 2
         assert results[0].payload == EMPTY_PAYLOAD
