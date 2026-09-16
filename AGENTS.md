@@ -62,3 +62,45 @@ pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_p
 ## Git
 
 Default branch `main`. Conventional-commit-style messages (`feat:`, `fix:`, `chore:`, `release:`). No AI attribution in commit messages.
+
+## Public repository privacy gate
+
+This repository is public. Treat committed files, commit/tag messages and
+identities, PR descriptions, CI logs, and release assets as permanent disclosures.
+
+Before committing or publishing:
+
+- Stage only explicit task-owned paths. Inspect the full staged diff and file
+  list, including untracked additions and binary contents/metadata. Do not commit
+  generated artifacts, installers, archives, diagnostic dumps, or backups merely
+  because they were produced during the task.
+- Never include credentials, tokens, cookies, private keys, signing material,
+  `.env` contents, live settings, recordings/transcripts, clipboard/snippet data,
+  personal emails, phones, addresses, CPF/CNPJ identifiers, household/device
+  details, private network endpoints, confidential client data, or private
+  product/roadmap details. Use synthetic fixtures and generic paths (`$HOME`,
+  `%USERPROFILE%`); sanitize screenshots and examples. Preserve legitimate public
+  license/copyright attribution. Documented synthetic test credentials are allowed
+  only for their narrow fixture purpose; never broadly allowlist real secrets.
+- Run the available secret scanner on staged content before committing and on
+  every outgoing commit/ref before pushing. Manually review privacy data and
+  metadata that scanners miss. If no scanner is available, disclose the gap and
+  complete a documented manual review; never claim a scanner ran. Separately run
+  `git diff --cached --check` for formatting.
+- Set repository-local `user.email = rteoo@users.noreply.github.com` and
+  `user.useConfigOnly = true`. Verify effective author/committer identities before
+  each commit and tagger identity before an annotated tag, including environment
+  and command-line overrides. New owner-authored metadata must use that noreply
+  address. Preserve legitimate third-party contributor attribution.
+- Before an authorized push, inspect the exact remote/refspecs and every outgoing
+  commit/tag, message, and reachable history. Never merge or push a pre-redaction
+  branch/tag that reintroduces private identities or data. `.gitignore`, noreply
+  configuration, and a clean working tree do not prove tracked files or history
+  safe. Preserve hooks, signing, secret-scanning push protection, and branch
+  protections; never bypass them.
+- If a leak is found, stop committing/publishing the affected material. Report
+  only redacted categories and locations, never the sensitive value. Deleting a
+  file later does not erase Git/PR/release history. Credential rotation, history
+  rewrites, force pushes, ref deletions, and external cleanup need explicit
+  authorization for exact targets. This policy grants no push, PR, release, or
+  history-rewrite authorization.
