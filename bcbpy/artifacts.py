@@ -1,4 +1,4 @@
-"""Warehouse-facing SGS raw-result descriptors. Public; does not import Strateo Markets."""
+"""Warehouse-facing SGS raw-result descriptors without application dependencies."""
 
 from __future__ import annotations
 
