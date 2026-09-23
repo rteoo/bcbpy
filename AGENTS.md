@@ -53,6 +53,7 @@ pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_p
 - **Test CI:** `.github/workflows/tests.yml` runs the unit subset (`pytest -m "not integration"`) on Python 3.10–3.13 for every push and PR to `main`. Integration tests stay out of CI (live API). No lint/type-check gate exists.
 - Publishing is CI-driven and OIDC-based (PyPI trusted publishing): a `v*` tag push or a published GitHub Release triggers `publish.yml`; TestPyPI staging is manual `workflow_dispatch` on `test-publish.yml`. **Do not** hand-run `twine upload` or manage PyPI tokens.
 - **Version-bump discipline:** the packaged version is dynamic — `pyproject.toml` reads it from `bcbpy/__init__.py` `__version__` via `[tool.setuptools.dynamic]`, so `__version__` is the single source of truth. A release bumps only `__version__`, adds a `CHANGELOG.md` entry, and pushes a matching `v*` tag.
+- **Release flow:** `main` is branch-protected, so the release commit goes through a PR. Tag the merged commit on `main` only after that PR lands. `publish.yml` fires on both a `v*` tag push and a published GitHub Release, so a Release created after the tag push starts a second run that fails on the duplicate upload.
 
 ## Known Drift (don't "fix" into existence)
 

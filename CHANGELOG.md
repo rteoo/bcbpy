@@ -1,6 +1,6 @@
 # Changelog
 
-## [v2.2.0] - 2026-08-20
+## [v2.2.0] - 2026-09-23
 
 ### Added
 - **`fetch_raw` / `fetch_raw_range` / `RawResult`** — warehouse-facing API returning payload bytes, canonical URL, query params, response headers, fetch time, series identity, SHA-256, and library/parser version (`sgs-json-1`).
