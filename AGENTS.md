@@ -57,7 +57,6 @@ pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_p
 ## Known Drift (don't "fix" into existence)
 
 - `requirements.txt` and the `main.py` CLI demo were **deleted** (commit `cc4f0aa`). Use the `[dev]` extra; there is no `main.py`. Only old `CHANGELOG.md` entries still mention them.
-- Some registry keys don't match their SGS series names (`AVG_NOMINAL_INCOME` is real habitual income, `REER_EUR` is the Deutsche mark index, `SELIC_OVERNIGHT_ANNUAL` / `CDI_OVERNIGHT` are monthly-accumulated annualized rates). Renaming them is a breaking change, so they stay until a major release.
 - Canonical repo is `github.com/rteoo/bcbpy` (the live remote, the `pyproject.toml` URLs, and the PyPI project all agree). Older `CHANGELOG.md` entries reference the former `github.com/TeodoroRodrigo/bcbpy` path — that is historical and must stay as written.
 - Licensing duality: code is MIT; data fetched via the client remains under ODbL (see `LICENSE`) — relevant to any data-redistribution feature/doc.
 
