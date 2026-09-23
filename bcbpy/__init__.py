@@ -27,6 +27,7 @@ from .client import (
     list_codes,
     search_codes,
     SGSError,
+    SGSHTTPError,
     SGSRateLimitError,
     SGSEmptyResponseError,
 )
@@ -63,6 +64,7 @@ __all__ = [
     "list_codes",
     "search_codes",
     "SGSError",
+    "SGSHTTPError",
     "SGSRateLimitError",
     "SGSEmptyResponseError",
     "EXCHANGE_RATES",

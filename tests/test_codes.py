@@ -49,6 +49,18 @@ class TestCodeDictionaries:
         assert EMPLOYMENT["UNEMPLOYMENT_RATE"] == 24369
         assert ECONOMIC_ACTIVITY["IBC_BR_SA"] == 24364
 
+    def test_corrected_codes_match_sgs_metadata(self):
+        # Verified against SGS series names on 2026-09-23. 1621 is a
+        # discontinued unemployment series, and 4394/4395 were swapped.
+        assert IPCA_BREAKDOWN["IPCA_CORE_EX1"] == 16121
+        assert CONFIDENCE["ICC_CURRENT_CONDITIONS"] == 4394
+        assert CONFIDENCE["ICC_FUTURE_EXPECTATIONS"] == 4395
+
+    def test_dead_series_is_not_registered(self):
+        # SGS answers 21858 with an HTML "invalid request" page after ~30s.
+        assert 21858 not in ALL_CODES.values()
+        assert "PRODUCTION_GENERAL" not in INDUSTRIAL_PRODUCTION
+
     def test_category_sizes(self):
         assert len(EXCHANGE_RATES) == 6
         assert len(INTEREST_RATES) == 10
@@ -57,7 +69,7 @@ class TestCodeDictionaries:
         assert len(IPCA_CATEGORIES) == 9
         assert len(GDP) == 13
         assert len(EMPLOYMENT) == 7
-        assert len(INDUSTRIAL_PRODUCTION) == 7
+        assert len(INDUSTRIAL_PRODUCTION) == 6
         assert len(FINANCIAL_MARKETS) == 7
         assert len(SAVINGS) == 2
         assert len(CONFIDENCE) == 4

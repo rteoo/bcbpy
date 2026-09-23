@@ -68,7 +68,7 @@ IPCA_BREAKDOWN = {
     "IPCA_SEMI_DURABLE_GOODS": 10842,
     "IPCA_NON_DURABLE_GOODS": 10841,
     "IPCA_SERVICES": 10844,
-    "IPCA_CORE_EX1": 1621,
+    "IPCA_CORE_EX1": 16121,
     "IPCA_CORE_TRIMMED_MEANS": 4466,
     "IPCA_CORE_DP": 16122,
 }
@@ -124,7 +124,6 @@ EMPLOYMENT = {
 # Industrial Production (Producao Industrial)
 # =============================================================================
 INDUSTRIAL_PRODUCTION = {
-    "PRODUCTION_GENERAL": 21858,
     "PRODUCTION_TOTAL": 21859,
     "MANUFACTURING": 21862,
     "MINING": 21861,
@@ -159,8 +158,8 @@ SAVINGS = {
 # =============================================================================
 CONFIDENCE = {
     "ICC_GENERAL": 4393,
-    "ICC_FUTURE_EXPECTATIONS": 4394,
-    "ICC_CURRENT_CONDITIONS": 4395,
+    "ICC_FUTURE_EXPECTATIONS": 4395,
+    "ICC_CURRENT_CONDITIONS": 4394,
     "ICEI_GENERAL": 7341,
 }
 

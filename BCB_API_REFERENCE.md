@@ -51,10 +51,10 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 
 ## API Limits and Notes
 
-- **Date range limit (since March 2025):** queries are capped at **10 years** max. Using date filters is now mandatory for large series.
+- **Date range limit (since March 2025):** queries on daily series are capped at **10 years** and must include `dataInicial`; otherwise the API returns HTTP 406 with a JSON body (`error`, `message`, `syntax`) explaining the rule.
 - **Rate limiting:** HTTP 429 on excessive requests (no official limit documented).
 - **Dates use DD/MM/YYYY** (Brazilian format). The `bcbpy` client also accepts YYYY-MM-DD for convenience.
-- **HTTP 404** is returned for invalid series codes.
+- **Invalid series codes** get HTTP 200 with an HTML "Requisição inválida!" page after ~30 seconds, not a 404 (observed September 2026).
 - **Empty arrays** are returned when a valid series has no data in the requested range.
 
 ---
@@ -121,7 +121,7 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | 10842 | `IPCA_SEMI_DURABLE_GOODS` | IPCA - Semi-durable goods            |
 | 10841 | `IPCA_NON_DURABLE_GOODS`  | IPCA - Non-durable goods             |
 | 10844 | `IPCA_SERVICES`           | IPCA - Services                      |
-| 1621  | `IPCA_CORE_EX1`           | IPCA Core - Ex-1                     |
+| 16121 | `IPCA_CORE_EX1`           | IPCA Core - EX1 (exclusion)          |
 | 4466  | `IPCA_CORE_TRIMMED_MEANS` | IPCA Core - MS (trimmed means)       |
 | 16122 | `IPCA_CORE_DP`            | IPCA Core - DP                       |
 
@@ -166,14 +166,13 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | 24379 | `EMPLOYED_PERSONS`       | Employed persons                     |
 | 24380 | `UNEMPLOYED_PERSONS`     | Unemployed persons                   |
 | 24381 | `AVG_REAL_INCOME`        | Average real income (deflated)       |
-| 24382 | `AVG_NOMINAL_INCOME`     | Average nominal income               |
+| 24382 | `AVG_NOMINAL_INCOME`     | Average real habitual income (SGS name; key kept for compatibility) |
 | 25239 | `FORMAL_EMPLOYMENT_TOTAL`| Formal employment - total            |
 
 ### Industrial Production (Producao Industrial)
 
 | Code  | Key Name               | Description                          |
 |-------|------------------------|--------------------------------------|
-| 21858 | `PRODUCTION_GENERAL`   | Industrial production - general      |
 | 21859 | `PRODUCTION_TOTAL`     | Industrial production - total        |
 | 21862 | `MANUFACTURING`        | Manufacturing industry               |
 | 21861 | `MINING`               | Mining                               |
@@ -205,8 +204,8 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | Code  | Key Name                   | Description                          |
 |-------|----------------------------|--------------------------------------|
 | 4393  | `ICC_GENERAL`              | Consumer confidence - general        |
-| 4394  | `ICC_FUTURE_EXPECTATIONS`  | Consumer confidence - future         |
-| 4395  | `ICC_CURRENT_CONDITIONS`   | Consumer confidence - current        |
+| 4395  | `ICC_FUTURE_EXPECTATIONS`  | Consumer confidence - future         |
+| 4394  | `ICC_CURRENT_CONDITIONS`   | Consumer confidence - current        |
 | 7341  | `ICEI_GENERAL`             | Business confidence - general        |
 
 ### Economic Activity
@@ -243,7 +242,7 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | 11752 | `REER_BASKET` | Basket (cesta de moedas)             |
 | 11753 | `REER_USD`    | US Dollar                            |
 | 11754 | `REER_JPY`    | Japanese Yen                         |
-| 11755 | `REER_EUR`    | Euro                                 |
+| 11755 | `REER_EUR`    | Deutsche mark (SGS name)             |
 | 11756 | `REER_ARS`    | Argentine Peso                       |
 
 ---

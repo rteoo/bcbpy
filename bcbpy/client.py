@@ -1,6 +1,7 @@
 """BCB SGS API Client — fetch time series data from Banco Central do Brasil."""
 
 import hashlib
+import warnings
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
@@ -40,6 +41,16 @@ class SGSRateLimitError(SGSError):
 
 class SGSEmptyResponseError(SGSError):
     """Raised when the API returns no data."""
+
+
+class SGSHTTPError(SGSError, requests.HTTPError):
+    """Raised on an HTTP error status other than 429.
+
+    The message carries the BCB error text when the body provides one, and
+    ``response`` holds the response. It also subclasses
+    ``requests.HTTPError`` so existing ``except requests.HTTPError`` handlers
+    keep working.
+    """
 
 
 def _format_date(d):
@@ -92,29 +103,17 @@ def _calendar_anniversary(value, years):
 def _bound_dates(start_date, end_date):
     """Normalize dates; default end to today when only start is given."""
     start = _format_date(start_date)
-    end = _format_date(end_date) if end_date else (
-        _format_date(date.today()) if start_date else None
+    end = _format_date(end_date) if end_date is not None else (
+        _format_date(date.today()) if start_date is not None else None
     )
     return start, end
 
 
 def _headers_map(headers):
-    """Lowercased header dict. Ignores mock objects that are not real mappings."""
+    """Lowercased, plain-dict copy of response headers."""
     if headers is None:
         return {}
-    try:
-        size = len(headers)
-    except Exception:
-        return {}
-    if not isinstance(size, int) or size < 0 or size > 10000:
-        return {}
-    mapped = {}
-    try:
-        for key, value in headers.items():
-            mapped[str(key).lower()] = str(value)
-    except Exception:
-        return {}
-    return mapped
+    return {str(key).lower(): str(value) for key, value in headers.items()}
 
 
 def _retry_after_seconds(headers):
@@ -146,8 +145,37 @@ def _handle_response(resp):
             headers=_headers_map(headers),
         )
     if resp.status_code == 404:
-        raise SGSError("Series not found (HTTP 404). Check the series code.")
-    resp.raise_for_status()
+        raise SGSHTTPError("Series not found (HTTP 404). Check the series code.", response=resp)
+    try:
+        resp.raise_for_status()
+    except requests.HTTPError as exc:
+        detail = _error_detail(resp)
+        message = f"BCB API returned HTTP {resp.status_code}: {detail}" if detail else str(exc)
+        raise SGSHTTPError(message, response=resp) from exc
+
+
+def _error_detail(resp):
+    """BCB's own error text from a JSON error body, or None."""
+    try:
+        body = resp.json()
+    except ValueError:
+        return None
+    if not isinstance(body, dict):
+        return None
+    parts = [body.get(key) for key in ("error", "message")]
+    return " ".join(part for part in parts if isinstance(part, str) and part) or None
+
+
+def _json_body(resp, code):
+    """Decoded JSON body. SGS answers unknown series with an HTML page, not JSON."""
+    try:
+        return resp.json()
+    except ValueError as exc:
+        content_type = _headers_map(getattr(resp, "headers", None)).get("content-type", "unknown")
+        raise SGSError(
+            f"Response for series {code} is not JSON (content-type: {content_type}). "
+            f"Check the series code."
+        ) from exc
 
 
 def _http_get(url, params, transport=None):
@@ -248,7 +276,10 @@ def _build_dataframe(data, code):
             f"{', '.join(sorted(missing))}."
         )
 
-    df["data"] = pd.to_datetime(df["data"], dayfirst=True)
+    try:
+        df["data"] = pd.to_datetime(df["data"], format=DATE_FORMAT)
+    except (TypeError, ValueError) as exc:
+        raise SGSError(f"Malformed response for series {code}: unparseable date ({exc}).") from exc
     df["valor"] = pd.to_numeric(df["valor"], errors="coerce")
     df.set_index("data", inplace=True)
     return df
@@ -273,7 +304,7 @@ def fetch_series(code, start_date=None, end_date=None, transport=None):
     start, end, url, params = _series_request(code, start_date, end_date)
     _validate_date_range(start, end)
     resp = _request(url, params, transport=transport)
-    return _build_dataframe(resp.json(), code)
+    return _build_dataframe(_json_body(resp, code), code)
 
 
 def fetch_last(code, n=10, transport=None):
@@ -298,7 +329,7 @@ def fetch_last(code, n=10, transport=None):
     params = {"formato": DEFAULT_FORMAT}
 
     resp = _request(url, params, transport=transport)
-    return _build_dataframe(resp.json(), code)
+    return _build_dataframe(_json_body(resp, code), code)
 
 
 def fetch_multiple(codes_dict, start_date=None, end_date=None, transport=None):
@@ -324,7 +355,7 @@ def fetch_multiple(codes_dict, start_date=None, end_date=None, transport=None):
             df = fetch_series(code, start_date, end_date, transport=transport)
             frames[name] = df["valor"]
         except SGSEmptyResponseError:
-            print(f"Warning: no data for {name} (code {code}), skipping.")
+            warnings.warn(f"no data for {name} (code {code}), skipping.", stacklevel=2)
     if not frames:
         raise SGSEmptyResponseError("No data returned for any of the requested series.")
     return pd.DataFrame(frames)
