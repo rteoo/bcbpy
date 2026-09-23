@@ -14,6 +14,7 @@ from bcbpy import (
     fetch_last,
     fetch_multiple,
     fetch_raw,
+    SGSHTTPError,
     INTEREST_RATES,
     EXCHANGE_RATES,
     INFLATION,
@@ -39,6 +40,11 @@ class TestFetchSeriesLive:
     def test_usd_daily(self):
         df = fetch_series(EXCHANGE_RATES["USD_SALE_DAILY"], start_date="2024-06-01", end_date="2024-06-30")
         assert len(df) > 15  # ~22 business days in June
+
+    def test_undated_daily_series_raises_with_bcb_message(self):
+        # SGS rejects undated queries on daily series with HTTP 406.
+        with pytest.raises(SGSHTTPError, match="HTTP 406"):
+            fetch_series(INTEREST_RATES["CDI_DAILY"])
 
 
 class TestFetchRawLive:

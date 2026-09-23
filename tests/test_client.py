@@ -1,5 +1,6 @@
 """Tests for bcbpy.client — API client functions (mocked, no network calls)."""
 
+import json
 from datetime import date, datetime
 from unittest.mock import patch, MagicMock
 
@@ -18,9 +19,32 @@ from bcbpy.client import (
     list_codes,
     search_codes,
     SGSError,
+    SGSHTTPError,
     SGSRateLimitError,
     SGSEmptyResponseError,
 )
+
+
+def _real_response(body, status_code=200, content_type="application/json; charset=utf-8"):
+    resp = requests.Response()
+    resp.status_code = status_code
+    resp._content = body
+    resp.headers["Content-Type"] = content_type
+    resp.url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados"
+    resp.encoding = "utf-8"
+    return resp
+
+
+# Body SGS sent on 2026-09-23 for an undated query on a daily series.
+BCB_406_BODY = json.dumps({
+    "error": "O sistema aceita uma janela de consulta de, no máximo, 10 anos "
+             "em séries de periodicidade diária",
+    "message": "Para acessar uma série de periodicidade diária, é necessário "
+               "informar a dataInicial",
+}).encode("utf-8")
+
+# SGS answers an unknown series with HTTP 200 and an HTML page.
+BCB_INVALID_HTML = b'<html><head><title>Requisicao invalida!</title></head></html>'
 
 
 # ---- _format_date ----
@@ -149,6 +173,26 @@ class TestHandleResponse:
         with pytest.raises(requests.HTTPError):
             _handle_response(resp)
 
+    def test_http_error_carries_bcb_message(self):
+        resp = _real_response(BCB_406_BODY, status_code=406)
+        with pytest.raises(SGSHTTPError, match="HTTP 406.*janela de consulta") as excinfo:
+            _handle_response(resp)
+        assert excinfo.value.response.status_code == 406
+
+    def test_http_error_is_catchable_as_sgs_and_requests_error(self):
+        # Callers following the docs catch SGSError; older callers caught
+        # requests.HTTPError. Both must keep working.
+        resp = _real_response(b"oops", status_code=500, content_type="text/plain")
+        with pytest.raises(SGSError):
+            _handle_response(resp)
+        with pytest.raises(requests.HTTPError):
+            _handle_response(resp)
+
+    def test_404_is_http_error(self):
+        resp = _real_response(b"", status_code=404, content_type="text/plain")
+        with pytest.raises(SGSHTTPError, match="Series not found"):
+            _handle_response(resp)
+
 
 # ---- _build_dataframe (malformed payload handling) ----
 
@@ -185,6 +229,14 @@ class TestBuildDataframe:
         )
         assert df["valor"].iloc[0] == 0.5
         assert pd.isna(df["valor"].iloc[1])
+
+    def test_unparseable_date_raises_sgs_error(self):
+        with pytest.raises(SGSError, match="unparseable date"):
+            _build_dataframe([{"data": "2024-01-15", "valor": "1"}], code=12)
+
+    def test_dates_are_parsed_day_first(self):
+        df = _build_dataframe([{"data": "03/04/2024", "valor": "1"}], code=12)
+        assert df.index[0] == pd.Timestamp("2024-04-03")
 
     def test_index_is_datetime_and_named(self):
         df = _build_dataframe([{"data": "15/03/2024", "valor": "1"}], code=12)
@@ -300,6 +352,25 @@ class TestFetchSeries:
         with pytest.raises(SGSError, match="expected a JSON list"):
             fetch_series(12, start_date="2024-01-01", end_date="2024-01-31")
 
+    def test_non_json_body_raises_sgs_error(self):
+        transport = lambda url, params=None, timeout=None: _real_response(
+            BCB_INVALID_HTML, content_type="text/html; charset=utf-8")
+        with pytest.raises(SGSError, match="not JSON.*text/html"):
+            fetch_series(21858, start_date="2024-01-01", end_date="2024-12-31",
+                         transport=transport)
+
+    def test_undated_daily_query_surfaces_bcb_message(self):
+        transport = lambda url, params=None, timeout=None: _real_response(
+            BCB_406_BODY, status_code=406)
+        with pytest.raises(SGSHTTPError, match="janela de consulta"):
+            fetch_series(12, transport=transport)
+
+    @patch("bcbpy.client.requests.get")
+    def test_empty_end_date_rejected_like_empty_start(self, mock_get):
+        with pytest.raises(ValueError, match="Invalid date format"):
+            fetch_series(12, start_date="2024-01-01", end_date="")
+        mock_get.assert_not_called()
+
     @patch("bcbpy.client.requests.get")
     def test_rate_limit_propagates(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON, status_code=429)
@@ -379,13 +450,16 @@ class TestFetchMultiple:
             fetch_multiple({"CDI": 12}, start_date="2026-01-01")
 
     @patch("bcbpy.client.fetch_series")
-    def test_partial_empty_skips(self, mock_fetch):
+    def test_partial_empty_skips(self, mock_fetch, capsys):
         df1 = pd.DataFrame({"valor": [0.05]}, index=pd.to_datetime(["2026-04-10"]))
         df1.index.name = "data"
         mock_fetch.side_effect = [df1, SGSEmptyResponseError("empty")]
 
-        result = fetch_multiple({"CDI": 12, "BAD": 99999}, start_date="2026-04-10")
+        with pytest.warns(UserWarning, match="no data for BAD"):
+            result = fetch_multiple({"CDI": 12, "BAD": 99999}, start_date="2026-04-10")
         assert list(result.columns) == ["CDI"]
+        # A library must not write to the caller's stdout.
+        assert capsys.readouterr().out == ""
 
     @patch("bcbpy.client.fetch_series")
     def test_empty_codes_dict_raises_value_error(self, mock_fetch):
