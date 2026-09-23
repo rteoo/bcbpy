@@ -7,14 +7,24 @@
 - Injectable **`transport=`** GET callable on fetch helpers for deterministic tests.
 - **`fetch_raw_range`** splits windows longer than the SGS 10-year limit into bounded partitions without duplicating the boundary date. Empty partition bodies are kept.
 - **`SGSRateLimitError.retry_after`** (and response headers) parsed from `Retry-After`. Failures are not swallowed or auto-retried.
+- **`SGSHTTPError`** for HTTP error statuses other than 429, carrying BCB's error text (e.g. the HTTP 406 explanation for undated daily queries). It subclasses both `SGSError` and `requests.HTTPError`, so existing handlers still catch it.
 
 ### Changed
 - `fetch_series`, `fetch_last`, and `fetch_multiple` still return DataFrames and still enforce the 10-year single-call limit. Longer ranges stay on `fetch_raw_range`.
+- `fetch_multiple` reports skipped empty series with `warnings.warn` instead of printing to stdout.
+- SGS dates are parsed strictly as `DD/MM/YYYY`; an unparseable date raises `SGSError`.
+
+### Removed
+- **`INDUSTRIAL_PRODUCTION["PRODUCTION_GENERAL"]` (21858)** — SGS no longer serves this series (it returns an HTML error page after ~30s). The registry now holds 114 codes. Use `PRODUCTION_TOTAL` (21859).
 
 ### Fixed
 - Ten-year range validation and `fetch_raw_range` partitioning now use a
   calendar anniversary instead of a fixed 366-day approximation. February 29
   uses February 28 in non-leap target years.
+- **`IPCA_BREAKDOWN["IPCA_CORE_EX1"]`** pointed to 1621, a discontinued unemployment series. It now points to 16121 (IPCA core EX1).
+- **`CONFIDENCE["ICC_FUTURE_EXPECTATIONS"]` / `["ICC_CURRENT_CONDITIONS"]`** were swapped. Future expectations is 4395; current conditions is 4394.
+- Non-JSON responses (SGS answers unknown series with an HTML page) raise `SGSError` instead of a raw JSON decode error.
+- `end_date=""` is rejected like `start_date=""` instead of silently becoming today.
 
 ## [v2.1.1] - 2026-07-18
 

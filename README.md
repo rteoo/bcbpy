@@ -2,7 +2,7 @@
 
 Python client for the **BCB SGS** (Sistema Gerenciador de Series Temporais) API from the [Banco Central do Brasil](https://dadosabertos.bcb.gov.br/).
 
-Fetch Brazilian economic and financial time series as pandas DataFrames with a simple, Pythonic interface. Includes **115 curated series codes** covering exchange rates, interest rates, inflation, GDP, employment, and more.
+Fetch Brazilian economic and financial time series as pandas DataFrames with a simple, Pythonic interface. Includes **114 curated series codes** covering exchange rates, interest rates, inflation, GDP, employment, and more.
 
 ## Installation
 
@@ -61,6 +61,8 @@ from bcbpy import fetch_series
 ipca = fetch_series(433, start_date="2023-01-01", end_date="2024-12-31")
 ```
 
+Daily series (CDI, Selic, USD/BRL, …) require a `start_date`: BCB rejects undated daily queries with HTTP 406, which surfaces as `SGSHTTPError` carrying BCB's explanation.
+
 #### `fetch_last(code, n=10)`
 
 Fetch the last N observations of a series.
@@ -109,7 +111,7 @@ Print all available series codes. Pass a category name to filter.
 ```python
 from bcbpy import list_codes
 
-list_codes()                        # all 115 codes across 14 categories
+list_codes()                        # all 114 codes across 14 categories
 list_codes("INTEREST_RATES")        # only interest rate codes
 ```
 
@@ -128,9 +130,12 @@ results = search_codes("USD")       # finds USD exchange rate codes
 
 | Exception | When |
 |-----------|------|
-| `SGSError` | Base exception for all API errors |
+| `SGSError` | Base class for every error raised by bcbpy, including malformed or non-JSON responses (e.g. an unknown series code) |
+| `SGSHTTPError` | Any other HTTP error status, with BCB's error text in the message. Also a `requests.HTTPError`. |
 | `SGSRateLimitError` | API returns HTTP 429 (too many requests). `retry_after` is set from `Retry-After` when present. |
 | `SGSEmptyResponseError` | No data returned for the given query |
+
+Network failures (timeouts, connection errors) are raised by `requests` unchanged.
 
 ### Error Handling
 
@@ -147,7 +152,7 @@ except SGSEmptyResponseError:
 
 ## Available Series Codes
 
-115 curated codes organized in 14 categories:
+114 curated codes organized in 14 categories:
 
 | Category | Series | Examples |
 |----------|--------|----------|
@@ -158,7 +163,7 @@ except SGSEmptyResponseError:
 | `IPCA_CATEGORIES` | 9 | Food, housing, transport, health, education |
 | `GDP` | 13 | GDP current/constant/USD, per capita, quarterly components |
 | `EMPLOYMENT` | 7 | Unemployment rate, labor force, income |
-| `INDUSTRIAL_PRODUCTION` | 7 | Manufacturing, mining, capital/intermediate/consumer goods |
+| `INDUSTRIAL_PRODUCTION` | 6 | Manufacturing, mining, capital/intermediate/consumer goods |
 | `FINANCIAL_MARKETS` | 7 | Gold, Bovespa, IMA-B |
 | `SAVINGS` | 2 | Savings rate and return |
 | `CONFIDENCE` | 4 | Consumer (ICC) and business (ICEI) confidence |
@@ -176,10 +181,25 @@ fetch_series(433)
 fetch_series(INFLATION["IPCA"])
 ```
 
+### Discontinued series
+
+These registered series have stopped updating in SGS (last observation as of September 2026). Historical data is still available; recent windows return `SGSEmptyResponseError`.
+
+| Series | Last observation |
+|--------|------------------|
+| `FINANCIAL_MARKETS`: `GOLD_BMF_GRAM`, `GOLD_LONDON_OZ`, `BOVESPA_INDEX`, `BOVESPA_VOLUME` | Sep 2019 |
+| `EMPLOYMENT["FORMAL_EMPLOYMENT_TOTAL"]` | Dec 2019 |
+| `INFLATION["ICV_DIEESE"]` | Feb 2020 |
+| `FINANCIAL_MARKETS`: `IMA_B`, `IMA_B5`, `IMA_B5_PLUS` | May 2023 |
+| `BASIC_BASKET` (all cities) | Jun 2025 |
+| `INFLATION`: `IGP_M_1ST_DECENNIAL`, `IGP_M_2ND_DECENNIAL`, `IPC_FIPE_1ST_QUAD`, `IPC_FIPE_2ND_QUAD`, `IPC_FIPE_3RD_QUAD` | Jul 2025 |
+
 ## API Limits
 
 - **Date range:** max 10 years per single query (BCB restriction since March 2025). `fetch_series` / `fetch_raw` still enforce that limit. `fetch_raw_range` splits longer windows into bounded requests.
 - **Rate limiting:** HTTP 429 on excessive requests (no official limit documented). `SGSRateLimitError.retry_after` carries `Retry-After` when the API sends it; the client does not auto-retry.
+- **Daily series:** a `start_date` is mandatory; undated queries return HTTP 406.
+- **Unknown series codes:** SGS answers with an HTML page (HTTP 200) after about 30 seconds instead of a 404. With the client's 30-second timeout this usually surfaces as `requests.ReadTimeout`; when the page arrives in time it raises `SGSError`.
 - **Date formats:** the client accepts both `YYYY-MM-DD` and `DD/MM/YYYY`
 
 ## Project Structure
@@ -190,10 +210,10 @@ bcbpy/
 │   ├── __init__.py      # Public API exports
 │   ├── artifacts.py     # RawResult descriptor
 │   ├── client.py        # API client functions and exceptions
-│   ├── codes.py         # 115 curated series codes in 14 categories
+│   ├── codes.py         # 114 curated series codes in 14 categories
 │   └── constants.py     # Base URLs and API configuration
 ├── pyproject.toml       # PyPI packaging metadata
-├── BCB_API_REFERENCE.md # Full SGS + Olinda API reference guide
+├── BCB_API_REFERENCE.md # SGS API reference and series code table
 └── README.md
 ```
 
