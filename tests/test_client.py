@@ -504,6 +504,18 @@ class TestFetchMultiple:
 # ---- list_codes ----
 
 class TestListCodes:
+    @pytest.mark.parametrize("category, expected, retired", [
+        ("EMPLOYMENT", "AVG_REAL_HABITUAL_INCOME", "AVG_NOMINAL_INCOME"),
+        ("INTEREST_RATES", "SELIC_MONTHLY_ANNUALIZED", "SELIC_OVERNIGHT_ANNUAL"),
+        ("INTEREST_RATES", "CDI_MONTHLY_ANNUALIZED", "CDI_OVERNIGHT"),
+        ("EXCHANGE_RATE_INDEX", "RER_DEM", "REER_EUR"),
+    ])
+    def test_lists_corrected_names(self, category, expected, retired, capsys):
+        list_codes(category)
+        output = capsys.readouterr().out
+        assert expected in output
+        assert retired not in output
+
     def test_list_all(self, capsys):
         list_codes()
         output = capsys.readouterr().out
@@ -550,7 +562,24 @@ class TestSearchCodes:
 
     def test_partial_match(self):
         results = search_codes("SELIC")
-        assert len(results) >= 4  # SELIC_DAILY, SELIC_TARGET, SELIC_OVERNIGHT_ANNUAL, SELIC_MONTHLY_ACCUMULATED
+        assert results == {
+            "SELIC_DAILY": 11,
+            "SELIC_TARGET": 432,
+            "SELIC_MONTHLY_ANNUALIZED": 4189,
+            "SELIC_MONTHLY_ACCUMULATED": 4390,
+        }
+
+    @pytest.mark.parametrize("keyword, expected", [
+        ("habitual", {"AVG_REAL_HABITUAL_INCOME": 24382}),
+        ("annualized", {"SELIC_MONTHLY_ANNUALIZED": 4189, "CDI_MONTHLY_ANNUALIZED": 4392}),
+        ("rer_", {"RER_USD": 11753, "RER_JPY": 11754, "RER_DEM": 11755, "RER_ARS": 11756}),
+        ("reer_", {"REER_BASKET": 11752}),
+        ("overnight", {}),
+        ("nominal_income", {}),
+        ("reer_eur", {}),
+    ])
+    def test_searches_corrected_names(self, keyword, expected):
+        assert search_codes(keyword) == expected
 
     def test_empty_keyword_returns_no_matches(self, capsys):
         # An empty query must not report the entire catalog as "matches".

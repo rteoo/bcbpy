@@ -15,7 +15,7 @@ Usage:
     df = fetch_multiple({"CDI": 12, "SELIC": 11}, start_date="2024-01-01")
 """
 
-__version__ = "2.2.0"
+__version__ = "3.0.0"
 
 from .artifacts import RawResult
 from .client import (

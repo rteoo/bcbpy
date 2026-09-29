@@ -1,5 +1,20 @@
 # Changelog
 
+## [v3.0.0] - Unreleased
+
+### Changed (breaking)
+- Rename misleading registry keys to match live SGS metadata (issue #10):
+  - `EMPLOYMENT["AVG_NOMINAL_INCOME"]` → `AVG_REAL_HABITUAL_INCOME` (24382).
+  - `INTEREST_RATES["SELIC_OVERNIGHT_ANNUAL"]` → `SELIC_MONTHLY_ANNUALIZED` (4189).
+  - `INTEREST_RATES["CDI_OVERNIGHT"]` → `CDI_MONTHLY_ANNUALIZED` (4392).
+  - `EXCHANGE_RATE_INDEX`: `REER_USD` → `RER_USD` (11753), `REER_JPY` → `RER_JPY` (11754), `REER_EUR` → `RER_DEM` (11755), and `REER_ARS` → `RER_ARS` (11756).
+- The old keys are removed, including from `ALL_CODES`; old lookups raise `KeyError`. `list_codes` and `search_codes` expose the corrected names.
+- `REER_BASKET` (11752) remains the effective index; the four `RER_*` indices are bilateral. All five use IPCA and June 1994 = 100.
+
+### Migration
+- Replace category and `ALL_CODES` key lookups, saved names, and search terms using the [README migration table](README.md#migrating-to-30).
+- Numeric SGS codes, the 114-series count, and fetch behavior are unchanged. No compatibility aliases are retained.
+
 ## [v2.2.0] - 2026-09-23
 
 ### Added
