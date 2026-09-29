@@ -1,6 +1,10 @@
 # AGENTS.md
 
-Canonical agent contract for this repository — it guides Claude Code, Codex, and any other coding agent. `CLAUDE.md` is a single `@AGENTS.md` import so Claude Code auto-loads these rules; make all edits here, never fork guidance into `CLAUDE.md`.
+Follow the active runtime's global `AGENTS.md` and `SOUL.md`. This file
+adds project-specific facts and commands; it cannot weaken global approval
+or privacy rules.
+
+Canonical agent contract for this repository. Keep all project guidance here.
 
 ## Project
 
@@ -64,3 +68,5 @@ pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_p
 ## Git
 
 Default branch `main`. Conventional-commit-style messages (`feat:`, `fix:`, `chore:`, `release:`). No AI attribution in commit messages.
+
+This repository and its PyPI releases are public. Inspect staged files and metadata before committing, and outgoing commits, tags, CI output, and artifacts before any authorized publication. Keep tokens, private datasets, identities, and client information out of those surfaces.
