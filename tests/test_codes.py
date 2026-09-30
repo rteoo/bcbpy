@@ -1,5 +1,9 @@
 """Tests for bcbpy.codes — series code registry."""
 
+import pytest
+
+import bcbpy
+
 from bcbpy.codes import (
     EXCHANGE_RATES,
     INTEREST_RATES,
@@ -18,6 +22,33 @@ from bcbpy.codes import (
     CATEGORIES,
     ALL_CODES,
 )
+
+
+class TestRenamedRegistryKeys:
+    @pytest.mark.parametrize("category, old_key, new_key, code", [
+        ("EMPLOYMENT", "AVG_NOMINAL_INCOME", "AVG_REAL_HABITUAL_INCOME", 24382),
+        ("INTEREST_RATES", "SELIC_OVERNIGHT_ANNUAL", "SELIC_MONTHLY_ANNUALIZED", 4189),
+        ("INTEREST_RATES", "CDI_OVERNIGHT", "CDI_MONTHLY_ANNUALIZED", 4392),
+        ("EXCHANGE_RATE_INDEX", "REER_USD", "RER_USD", 11753),
+        ("EXCHANGE_RATE_INDEX", "REER_JPY", "RER_JPY", 11754),
+        ("EXCHANGE_RATE_INDEX", "REER_EUR", "RER_DEM", 11755),
+        ("EXCHANGE_RATE_INDEX", "REER_ARS", "RER_ARS", 11756),
+    ])
+    def test_names_match_sgs_metadata(self, category, old_key, new_key, code):
+        # Names verified via SGS getUltimoValorXML on 2026-09-29.
+        registry = CATEGORIES[category]
+        assert getattr(bcbpy, category) is registry
+        assert registry[new_key] == code
+        assert ALL_CODES[new_key] == code
+        assert bcbpy.ALL_CODES[new_key] == code
+        with pytest.raises(KeyError):
+            registry[old_key]
+        with pytest.raises(KeyError):
+            ALL_CODES[old_key]
+
+    def test_effective_basket_is_preserved(self):
+        assert EXCHANGE_RATE_INDEX["REER_BASKET"] == 11752
+        assert {key for key in EXCHANGE_RATE_INDEX if key.startswith("REER_")} == {"REER_BASKET"}
 
 
 class TestCodeDictionaries:

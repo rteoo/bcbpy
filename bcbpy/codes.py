@@ -27,10 +27,10 @@ INTEREST_RATES = {
     "TBF": 253,
     "TJLP": 256,
     "SELIC_TARGET": 432,
-    "SELIC_OVERNIGHT_ANNUAL": 4189,
+    "SELIC_MONTHLY_ANNUALIZED": 4189,
     "SELIC_MONTHLY_ACCUMULATED": 4390,
     "CDI_MONTHLY": 4391,
-    "CDI_OVERNIGHT": 4392,
+    "CDI_MONTHLY_ANNUALIZED": 4392,
 }
 
 # =============================================================================
@@ -116,7 +116,7 @@ EMPLOYMENT = {
     "EMPLOYED_PERSONS": 24379,
     "UNEMPLOYED_PERSONS": 24380,
     "AVG_REAL_INCOME": 24381,
-    "AVG_NOMINAL_INCOME": 24382,
+    "AVG_REAL_HABITUAL_INCOME": 24382,
     "FORMAL_EMPLOYMENT_TOTAL": 25239,
 }
 
@@ -193,14 +193,14 @@ BASIC_BASKET = {
 }
 
 # =============================================================================
-# Real Effective Exchange Rate Index (IPCA-based)
+# Real Exchange Rate Indices (IPCA-based, June 1994 = 100)
 # =============================================================================
 EXCHANGE_RATE_INDEX = {
     "REER_BASKET": 11752,
-    "REER_USD": 11753,
-    "REER_JPY": 11754,
-    "REER_EUR": 11755,
-    "REER_ARS": 11756,
+    "RER_USD": 11753,
+    "RER_JPY": 11754,
+    "RER_DEM": 11755,
+    "RER_ARS": 11756,
 }
 
 # =============================================================================

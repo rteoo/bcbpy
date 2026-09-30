@@ -82,10 +82,10 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | 253   | `TBF`                       | Taxa Basica Financeira               |
 | 256   | `TJLP`                      | Taxa de Juros de Longo Prazo         |
 | 432   | `SELIC_TARGET`              | Selic target rate (meta)             |
-| 4189  | `SELIC_OVERNIGHT_ANNUAL`    | Selic overnight annualized (base 252)|
+| 4189  | `SELIC_MONTHLY_ANNUALIZED`  | Selic accumulated monthly, annualized (base 252) |
 | 4390  | `SELIC_MONTHLY_ACCUMULATED` | Selic accumulated monthly            |
 | 4391  | `CDI_MONTHLY`               | CDI monthly                          |
-| 4392  | `CDI_OVERNIGHT`             | CDI overnight                        |
+| 4392  | `CDI_MONTHLY_ANNUALIZED`    | CDI accumulated monthly, annualized (base 252) |
 
 ### Inflation Indices (Indices de Precos)
 
@@ -166,7 +166,7 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | 24379 | `EMPLOYED_PERSONS`       | Employed persons                     |
 | 24380 | `UNEMPLOYED_PERSONS`     | Unemployed persons                   |
 | 24381 | `AVG_REAL_INCOME`        | Average real income (deflated)       |
-| 24382 | `AVG_NOMINAL_INCOME`     | Average real habitual income (SGS name; key kept for compatibility) |
+| 24382 | `AVG_REAL_HABITUAL_INCOME` | Average real habitual income of employed people (PNADC) |
 | 25239 | `FORMAL_EMPLOYMENT_TOTAL`| Formal employment - total            |
 
 ### Industrial Production (Producao Industrial)
@@ -235,15 +235,26 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 | 7493  | `SAO_PAULO`       | Sao Paulo      |
 | 7494  | `VITORIA`         | Vitoria        |
 
-### Real Effective Exchange Rate Index (IPCA-based)
+### Real Exchange Rate Indices (IPCA-based)
+
+All five indices use June 1994 = 100. Only the basket index is effective;
+the currency-specific indices are bilateral. Names verified against SGS
+`getUltimoValorXML` on 2026-09-29.
 
 | Code  | Key Name      | Description                          |
 |-------|---------------|--------------------------------------|
-| 11752 | `REER_BASKET` | Basket (cesta de moedas)             |
-| 11753 | `REER_USD`    | US Dollar                            |
-| 11754 | `REER_JPY`    | Japanese Yen                         |
-| 11755 | `REER_EUR`    | Deutsche mark (SGS name)             |
-| 11756 | `REER_ARS`    | Argentine Peso                       |
+| 11752 | `REER_BASKET` | Effective currency basket (cesta de moedas) |
+| 11753 | `RER_USD`     | Bilateral - US Dollar                |
+| 11754 | `RER_JPY`     | Bilateral - Japanese Yen             |
+| 11755 | `RER_DEM`     | Bilateral - Deutsche mark            |
+| 11756 | `RER_ARS`     | Bilateral - Argentine Peso           |
+
+### Registry key migration (3.0)
+
+Seven misleading keys were removed in 3.0. See the
+[complete migration table in the README](README.md#migrating-to-30) for their
+replacements. Update category and `ALL_CODES` lookups, stored key names, and
+search terms. Numeric codes and fetched data are unchanged.
 
 ---
 

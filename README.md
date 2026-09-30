@@ -169,7 +169,7 @@ except SGSEmptyResponseError:
 | `CONFIDENCE` | 4 | Consumer (ICC) and business (ICEI) confidence |
 | `ECONOMIC_ACTIVITY` | 1 | IBC-Br (GDP proxy, seasonally adjusted) |
 | `BASIC_BASKET` | 16 | Cost of living by capital city |
-| `EXCHANGE_RATE_INDEX` | 5 | Real effective exchange rate (USD, EUR, JPY, ARS) |
+| `EXCHANGE_RATE_INDEX` | 5 | Effective currency basket and bilateral real indices (USD, JPY, DEM, ARS) |
 
 Use any code directly by number or via the category dictionaries:
 
@@ -179,6 +179,39 @@ from bcbpy import INFLATION, GDP
 # These are equivalent:
 fetch_series(433)
 fetch_series(INFLATION["IPCA"])
+```
+
+### Migrating to 3.0
+
+Version 3.0 renames seven registry keys to match the SGS series names. Update
+dictionary lookups and any saved key names using this table:
+
+| Category | Old key (2.x) | New key (3.0) | SGS code |
+|----------|---------------|---------------|----------|
+| `EMPLOYMENT` | `AVG_NOMINAL_INCOME` | `AVG_REAL_HABITUAL_INCOME` | 24382 |
+| `INTEREST_RATES` | `SELIC_OVERNIGHT_ANNUAL` | `SELIC_MONTHLY_ANNUALIZED` | 4189 |
+| `INTEREST_RATES` | `CDI_OVERNIGHT` | `CDI_MONTHLY_ANNUALIZED` | 4392 |
+| `EXCHANGE_RATE_INDEX` | `REER_USD` | `RER_USD` | 11753 |
+| `EXCHANGE_RATE_INDEX` | `REER_JPY` | `RER_JPY` | 11754 |
+| `EXCHANGE_RATE_INDEX` | `REER_EUR` | `RER_DEM` | 11755 |
+| `EXCHANGE_RATE_INDEX` | `REER_ARS` | `RER_ARS` | 11756 |
+
+The old keys are removed from the category dictionaries and `ALL_CODES`;
+lookups raise `KeyError`. `list_codes` and `search_codes` expose the new names.
+Numeric SGS codes, the 114-series count, and fetch behavior are unchanged.
+
+Code 24382 measures real habitual income of employed people. Codes 4189 and
+4392 measure Selic and CDI accumulated over the month, annualized on a
+252-day basis. `RER_DEM` is the Deutsche mark index. The four `RER_*` indices
+are bilateral; `REER_BASKET` (11752) remains the effective currency-basket
+index. All five exchange-rate indices are IPCA-based, with June 1994 = 100.
+
+```python
+from bcbpy import fetch_last, EMPLOYMENT, INTEREST_RATES, EXCHANGE_RATE_INDEX
+
+income = fetch_last(EMPLOYMENT["AVG_REAL_HABITUAL_INCOME"])
+selic = fetch_last(INTEREST_RATES["SELIC_MONTHLY_ANNUALIZED"])
+dem = fetch_last(EXCHANGE_RATE_INDEX["RER_DEM"])
 ```
 
 ### Discontinued series
