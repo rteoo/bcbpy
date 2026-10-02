@@ -257,3 +257,9 @@ All data is fetched from the [BCB Open Data Portal](https://dadosabertos.bcb.gov
 ## License
 
 MIT (see [LICENSE](LICENSE)). The BCB data accessed through this client remains under ODbL; users must comply with ODbL when redistributing data.
+
+## Releasing
+
+The version in `bcbpy/__init__.py` must already be merged to `main`. From a clean checkout matching `origin/main`, run `python release.py --tag vX.Y.Z --dry-run`, then rerun without `--dry-run` and type the tag to confirm.
+
+The release helper runs these gates locally: `python -m pytest -m "not integration" -v` and `python -m build`. It never bumps or commits `main`; PyPI publication remains the OIDC GitHub Actions workflow. A retry is safe only for the same tag when the existing tag points at the exact merged commit and no GitHub release exists. PyPI releases are immutable; rollback means following the package-recovery process rather than deleting or replacing a published version. The helper is platform-neutral Python, but hosted Actions behavior is not proven by local execution.
