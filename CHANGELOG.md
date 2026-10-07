@@ -1,6 +1,10 @@
 # Changelog
 
-## [v3.0.0] - Unreleased
+## [v2.3.0] - 2026-10-07
+
+### Added
+- Editable SVG project icon in `docs/bcbpy-icon.svg`, following the Homepy visual style.
+- Centered README icon, badges, and feature highlights.
 
 ### Changed (breaking)
 - Rename misleading registry keys to match live SGS metadata (issue #10):
@@ -12,7 +16,7 @@
 - `REER_BASKET` (11752) remains the effective index; the four `RER_*` indices are bilateral. All five use IPCA and June 1994 = 100.
 
 ### Migration
-- Replace category and `ALL_CODES` key lookups, saved names, and search terms using the [README migration table](README.md#migrating-to-30).
+- Replace category and `ALL_CODES` key lookups, saved names, and search terms using the [README migration table](README.md#migrating-to-23).
 - Numeric SGS codes, the 114-series count, and fetch behavior are unchanged. No compatibility aliases are retained.
 
 ## [v2.2.0] - 2026-09-23
