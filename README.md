@@ -257,3 +257,6 @@ All data is fetched from the [BCB Open Data Portal](https://dadosabertos.bcb.gov
 ## License
 
 MIT (see [LICENSE](LICENSE)). The BCB data accessed through this client remains under ODbL; users must comply with ODbL when redistributing data.
+## Releasing
+
+The version in `bcbpy/__init__.py` must already be merged to `main`. From a clean checkout matching `origin/main`, preview and then publish a tag with `python release.py --tag vX.Y.Z --dry-run` and `python release.py --tag vX.Y.Z`. The helper runs the offline suite and package build, never bumps or commits `main`, and creates the GitHub release at the exact merged commit. PyPI publication remains the OIDC GitHub Actions workflow.
