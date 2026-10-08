@@ -1,8 +1,37 @@
 # bcbpy
 
-Python client for the **BCB SGS** (Sistema Gerenciador de Series Temporais) API from the [Banco Central do Brasil](https://dadosabertos.bcb.gov.br/).
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rteoo/bcbpy/main/docs/bcbpy-icon.svg" width="128" alt="bcbpy time-series icon">
+</p>
 
-Fetch Brazilian economic and financial time series as pandas DataFrames with a simple, Pythonic interface. Includes **114 curated series codes** covering exchange rates, interest rates, inflation, GDP, employment, and more.
+<p align="center">
+  A Python client for Banco Central do Brasil's SGS API, with pandas DataFrames,
+  raw data provenance, and 114 curated economic series.
+</p>
+
+<p align="center">
+  <a href="https://github.com/rteoo/bcbpy/actions/workflows/tests.yml"><img src="https://github.com/rteoo/bcbpy/actions/workflows/tests.yml/badge.svg" alt="Test status"></a>
+  <a href="https://pypi.org/project/bcbpy/"><img src="https://img.shields.io/pypi/v/bcbpy?label=PyPI" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/bcbpy/"><img src="https://img.shields.io/pypi/pyversions/bcbpy" alt="Supported Python versions"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
+</p>
+
+Fetch Brazilian economic and financial time series from the
+[Banco Central do Brasil](https://dadosabertos.bcb.gov.br/) SGS
+(Sistema Gerenciador de Séries Temporais) API. Read exchange rates, interest
+rates, inflation, GDP, employment, and more from Python without an API key.
+
+## Highlights
+
+- Date-indexed pandas DataFrames for individual series, recent observations,
+  and multiple series merged into one table.
+- **114 curated series codes across 14 categories**, plus keyword search and
+  direct numeric SGS-code access.
+- Raw payloads with request metadata, retrieval time, SHA-256, and parser
+  version for reproducible data pipelines.
+- Automatic partitioning of raw date ranges longer than SGS's 10-year
+  single-query limit.
+- Explicit HTTP and rate-limit errors, including `Retry-After` when provided.
 
 ## Installation
 
@@ -181,12 +210,13 @@ fetch_series(433)
 fetch_series(INFLATION["IPCA"])
 ```
 
-### Migrating to 3.0
+### Migrating to 2.3
 
-Version 3.0 renames seven registry keys to match the SGS series names. Update
-dictionary lookups and any saved key names using this table:
+Version 2.3 renames seven registry keys to match the SGS series names.
+**These are breaking changes to registry lookups.** Update dictionary lookups
+and any saved key names using this table:
 
-| Category | Old key (2.x) | New key (3.0) | SGS code |
+| Category | Old key (2.2 and earlier) | New key (2.3) | SGS code |
 |----------|---------------|---------------|----------|
 | `EMPLOYMENT` | `AVG_NOMINAL_INCOME` | `AVG_REAL_HABITUAL_INCOME` | 24382 |
 | `INTEREST_RATES` | `SELIC_OVERNIGHT_ANNUAL` | `SELIC_MONTHLY_ANNUALIZED` | 4189 |
@@ -245,6 +275,8 @@ bcbpy/
 │   ├── client.py        # API client functions and exceptions
 │   ├── codes.py         # 114 curated series codes in 14 categories
 │   └── constants.py     # Base URLs and API configuration
+├── docs/
+│   └── bcbpy-icon.svg   # Editable project icon
 ├── pyproject.toml       # PyPI packaging metadata
 ├── BCB_API_REFERENCE.md # SGS API reference and series code table
 └── README.md
@@ -257,6 +289,9 @@ All data is fetched from the [BCB Open Data Portal](https://dadosabertos.bcb.gov
 ## License
 
 MIT (see [LICENSE](LICENSE)). The BCB data accessed through this client remains under ODbL; users must comply with ODbL when redistributing data.
+
 ## Releasing
 
-The version in `bcbpy/__init__.py` must already be merged to `main`. From a clean checkout matching `origin/main`, preview and then publish a tag with `python release.py --tag vX.Y.Z --dry-run` and `python release.py --tag vX.Y.Z`. The helper runs the offline suite and package build, never bumps or commits `main`, and creates the GitHub release at the exact merged commit. PyPI publication remains the OIDC GitHub Actions workflow.
+The version in `bcbpy/__init__.py` must already be merged to `main`. From a clean checkout matching `origin/main`, run `python release.py --tag vX.Y.Z --dry-run`, then rerun without `--dry-run` and type the tag to confirm.
+
+The release helper runs these gates locally: `python -m pytest -m "not integration" -v` and `python -m build`. It never bumps or commits `main`; PyPI publication remains the OIDC GitHub Actions workflow. A retry is safe only for the same tag when the existing tag points at the exact merged commit and no GitHub release exists. PyPI releases are immutable; rollback means following the package-recovery process rather than deleting or replacing a published version. The helper is platform-neutral Python, but hosted Actions behavior is not proven by local execution.

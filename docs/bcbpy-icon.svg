@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-labelledby="title desc">
+  <title id="title">bcbpy</title>
+  <desc id="desc">A cyan time-series chart with an orange latest observation on a rounded navy tile.</desc>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16408a"/>
+      <stop offset="0.5" stop-color="#0d2a62"/>
+      <stop offset="1" stop-color="#081a40"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="glyph" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5ee7f5"/>
+      <stop offset="1" stop-color="#2a9df4"/>
+    </linearGradient>
+    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5ee7f5" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#2a9df4" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop offset="0" stop-color="#ff8a2a" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#ff8a2a" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="tile-clip">
+      <rect x="64" y="64" width="896" height="896" rx="200"/>
+    </clipPath>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#tile)"/>
+  <rect x="64" y="64" width="896" height="380" fill="url(#sheen)" clip-path="url(#tile-clip)"/>
+  <rect x="68" y="68" width="888" height="888" rx="196" fill="none" stroke="#5aa0ff" stroke-opacity="0.35" stroke-width="8"/>
+  <!-- A shared baseline anchors the data without implying an official BCB emblem. -->
+  <path d="M248 280 V760 H784" fill="none" stroke="#bdf6ff" stroke-opacity="0.85" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M320 638 L432 520 L544 578 L656 406 L776 300 V736 H320 Z" fill="url(#area)"/>
+  <path d="M320 638 L432 520 L544 578 L656 406 L776 300" fill="none" stroke="url(#glyph)" stroke-width="68" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="776" cy="300" r="112" fill="url(#halo)"/>
+  <circle cx="776" cy="300" r="48" fill="#ff8a2a"/>
+</svg>
