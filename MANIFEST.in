@@ -1,0 +1,3 @@
+include DESIGN.md
+recursive-include docs *.md *.svg
+recursive-include compat/bcbpy *.py *.toml *.md LICENSE

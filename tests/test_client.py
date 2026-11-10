@@ -1,4 +1,4 @@
-"""Tests for bcbpy.client — API client functions (mocked, no network calls)."""
+"""Tests for bcbdata.client — API client functions (mocked, no network calls)."""
 
 import json
 from datetime import date, datetime
@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 import requests
 
-from bcbpy.client import (
+from bcbdata.client import (
     _format_date,
     _validate_date_range,
     _handle_response,
@@ -263,7 +263,7 @@ def _mock_response(json_data, status_code=200):
 
 
 class TestFetchSeries:
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_returns_dataframe(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         df = fetch_series(12, start_date="2026-04-10", end_date="2026-04-12")
@@ -272,26 +272,26 @@ class TestFetchSeries:
         assert "valor" in df.columns
         assert df.index.name == "data"
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_valor_is_numeric(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         df = fetch_series(12, start_date="2026-04-10", end_date="2026-04-12")
         assert df["valor"].dtype == float
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_empty_response_raises(self, mock_get):
         mock_get.return_value = _mock_response([])
         with pytest.raises(SGSEmptyResponseError):
             fetch_series(99999, start_date="2026-01-01", end_date="2026-01-31")
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_url_contains_code(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(433, start_date="2026-01-01", end_date="2026-04-01")
         url = mock_get.call_args[0][0]
         assert "bcdata.sgs.433" in url
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_date_params_sent(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(12, start_date="2026-01-01", end_date="2026-04-01")
@@ -299,7 +299,7 @@ class TestFetchSeries:
         assert params["dataInicial"] == "01/01/2026"
         assert params["dataFinal"] == "01/04/2026"
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_no_dates_no_date_params(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(12)
@@ -307,13 +307,13 @@ class TestFetchSeries:
         assert "dataInicial" not in params
         assert "dataFinal" not in params
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_formato_param_always_sent(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(12)
         assert mock_get.call_args[1]["params"]["formato"] == "json"
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_start_only_defaults_end_to_today(self, mock_get):
         # When only start_date is given, end must default to today so the range
         # is bounded — not left open.
@@ -323,7 +323,7 @@ class TestFetchSeries:
         assert params["dataInicial"] == "01/01/2024"
         assert params["dataFinal"] == _format_date(date.today())
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_end_only_sends_no_start_param(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_series(12, end_date="2024-01-31")
@@ -331,7 +331,7 @@ class TestFetchSeries:
         assert "dataInicial" not in params
         assert params["dataFinal"] == "31/01/2024"
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_future_start_defaulting_to_today_raises(self, mock_get):
         # start in the future + implicit end=today would be an inverted range;
         # it must fail loudly before hitting the network.
@@ -340,13 +340,13 @@ class TestFetchSeries:
             fetch_series(12, start_date="2999-01-01")
         mock_get.assert_not_called()
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_invalid_range_never_calls_network(self, mock_get):
         with pytest.raises(ValueError):
             fetch_series(12, start_date="2024-12-31", end_date="2024-01-01")
         mock_get.assert_not_called()
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_malformed_payload_raises_sgs_error(self, mock_get):
         mock_get.return_value = _mock_response({"error": "bad"})
         with pytest.raises(SGSError, match="expected a JSON list"):
@@ -365,13 +365,13 @@ class TestFetchSeries:
         with pytest.raises(SGSHTTPError, match="janela de consulta"):
             fetch_series(12, transport=transport)
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_empty_end_date_rejected_like_empty_start(self, mock_get):
         with pytest.raises(ValueError, match="Invalid date format"):
             fetch_series(12, start_date="2024-01-01", end_date="")
         mock_get.assert_not_called()
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_rate_limit_propagates(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON, status_code=429)
         with pytest.raises(SGSRateLimitError):
@@ -381,46 +381,46 @@ class TestFetchSeries:
 # ---- fetch_last ----
 
 class TestFetchLast:
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_returns_n_rows(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON[:2])
         df = fetch_last(12, n=2)
         assert len(df) == 2
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_url_contains_ultimos(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_last(1, n=5)
         url = mock_get.call_args[0][0]
         assert "ultimos/5" in url
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_empty_response_raises(self, mock_get):
         mock_get.return_value = _mock_response([])
         with pytest.raises(SGSEmptyResponseError):
             fetch_last(99999, n=5)
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_default_n_is_10(self, mock_get):
         mock_get.return_value = _mock_response(MOCK_JSON)
         fetch_last(12)
         assert "ultimos/10" in mock_get.call_args[0][0]
 
     @pytest.mark.parametrize("bad_n", [0, -1, -100])
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_non_positive_n_raises_before_network(self, mock_get, bad_n):
         with pytest.raises(ValueError, match="positive integer"):
             fetch_last(12, n=bad_n)
         mock_get.assert_not_called()
 
     @pytest.mark.parametrize("bad_n", [2.9, "5", None, 3.0])
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_non_int_n_raises(self, mock_get, bad_n):
         with pytest.raises(ValueError, match="positive integer"):
             fetch_last(12, n=bad_n)
         mock_get.assert_not_called()
 
-    @patch("bcbpy.client.requests.get")
+    @patch("bcbdata.client.requests.get")
     def test_bool_n_rejected(self, mock_get):
         # True is an int subclass equal to 1; it must not sneak through as n=1.
         with pytest.raises(ValueError, match="positive integer"):
@@ -431,7 +431,7 @@ class TestFetchLast:
 # ---- fetch_multiple ----
 
 class TestFetchMultiple:
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_merges_columns(self, mock_fetch):
         df1 = pd.DataFrame({"valor": [0.05, 0.06]}, index=pd.to_datetime(["2026-04-10", "2026-04-11"]))
         df1.index.name = "data"
@@ -443,13 +443,13 @@ class TestFetchMultiple:
         assert list(result.columns) == ["CDI", "SELIC"]
         assert len(result) == 2
 
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_all_empty_raises(self, mock_fetch):
         mock_fetch.side_effect = SGSEmptyResponseError("empty")
         with pytest.raises(SGSEmptyResponseError, match="No data returned for any"):
             fetch_multiple({"CDI": 12}, start_date="2026-01-01")
 
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_partial_empty_skips(self, mock_fetch, capsys):
         df1 = pd.DataFrame({"valor": [0.05]}, index=pd.to_datetime(["2026-04-10"]))
         df1.index.name = "data"
@@ -461,14 +461,14 @@ class TestFetchMultiple:
         # A library must not write to the caller's stdout.
         assert capsys.readouterr().out == ""
 
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_empty_codes_dict_raises_value_error(self, mock_fetch):
         # Empty input is a caller error, not "no data returned".
         with pytest.raises(ValueError, match="empty"):
             fetch_multiple({})
         mock_fetch.assert_not_called()
 
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_non_empty_errors_propagate(self, mock_fetch):
         # Only SGSEmptyResponseError is tolerated per-series; a rate-limit must
         # abort the whole batch rather than be silently swallowed.
@@ -476,7 +476,7 @@ class TestFetchMultiple:
         with pytest.raises(SGSRateLimitError):
             fetch_multiple({"CDI": 12}, start_date="2026-01-01")
 
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_column_order_follows_input_dict(self, mock_fetch):
         idx = pd.to_datetime(["2026-04-10"])
         def make(_code, *a, **k):
@@ -487,7 +487,7 @@ class TestFetchMultiple:
         result = fetch_multiple({"Z": 1, "A": 2, "M": 3}, start_date="2026-04-10")
         assert list(result.columns) == ["Z", "A", "M"]
 
-    @patch("bcbpy.client.fetch_series")
+    @patch("bcbdata.client.fetch_series")
     def test_misaligned_indexes_union_with_nan(self, mock_fetch):
         df1 = pd.DataFrame({"valor": [1.0, 2.0]},
                            index=pd.to_datetime(["2026-04-10", "2026-04-11"]))
@@ -588,7 +588,7 @@ class TestSearchCodes:
         assert "No codes matching" in capsys.readouterr().out
 
     def test_returned_codes_are_the_registry_values(self):
-        from bcbpy.codes import ALL_CODES
+        from bcbdata.codes import ALL_CODES
         results = search_codes("IPCA")
         for name, code in results.items():
             assert ALL_CODES[name] == code

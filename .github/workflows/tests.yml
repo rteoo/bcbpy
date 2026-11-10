@@ -37,3 +37,27 @@ jobs:
 
       - name: Run unit tests
         run: python -m pytest -m "not integration" -v
+
+  package:
+    name: Build and smoke-test migration distributions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install ".[dev]"
+      - name: Build and check both distributions
+        run: |
+          python -m build --outdir dist/bcbdata
+          python -m build compat/bcbpy --outdir dist/bcbpy
+          python -m twine check --strict dist/bcbdata/* dist/bcbpy/*
+      - name: Import both wheels outside the checkout
+        run: |
+          python -m venv "$RUNNER_TEMP/bcbdata-wheels"
+          "$RUNNER_TEMP/bcbdata-wheels/bin/python" -m pip install dist/bcbdata/*.whl dist/bcbpy/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/bcbdata-wheels/bin/python" -c "from importlib.metadata import version; import bcbdata, bcbpy; assert version('bcbdata') == version('bcbpy') == bcbdata.__version__; assert all(getattr(bcbpy, name) is getattr(bcbdata, name) for name in bcbdata.__all__); import bcbpy.client, bcbdata.client; assert bcbpy.client is bcbdata.client"

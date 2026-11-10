@@ -9,7 +9,7 @@ import json
 import pytest
 import pandas as pd
 
-from bcbpy import (
+from bcbdata import (
     fetch_series,
     fetch_last,
     fetch_multiple,
