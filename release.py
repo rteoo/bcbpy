@@ -1,4 +1,4 @@
-"""Release an already merged bcbdata version; never bumps or commits main."""
+"""Release an already merged bcb-data version; never bumps or commits main."""
 from __future__ import annotations
 import argparse
 import os
@@ -6,7 +6,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-REPO = 'rteoo/bcbdata'
+REPO = 'rteoo/bcb-data'
 ROOT = Path(__file__).resolve().parent
 GATES = [(sys.executable, '-m', 'pytest', '-m', 'not integration', '-v'), (sys.executable, '-m', 'build'), (sys.executable, '-m', 'build', 'compat/bcbpy')]
 
@@ -50,9 +50,9 @@ def tag_version(tag):
     return tag[1:]
 
 def manifest_version():
-    m = re.search('^__version__\\s*=\\s*["\\\']([^"\\\']+)', (ROOT / 'bcbdata/__init__.py').read_text(encoding='utf-8'), re.M)
+    m = re.search('^__version__\\s*=\\s*["\\\']([^"\\\']+)', (ROOT / 'bcb_data/__init__.py').read_text(encoding='utf-8'), re.M)
     if not m:
-        raise RuntimeError('bcbdata/__init__.py has no __version__')
+        raise RuntimeError('bcb_data/__init__.py has no __version__')
     return m.group(1)
 
 def guard():

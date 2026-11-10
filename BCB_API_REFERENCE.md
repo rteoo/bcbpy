@@ -53,7 +53,7 @@ https://api.bcb.gov.br/dados/serie/bcdata.sgs.{CODE}/dados?formato=json&dataInic
 
 - **Date range limit (since March 2025):** queries on daily series are capped at **10 years** and must include `dataInicial`; otherwise the API returns HTTP 406 with a JSON body (`error`, `message`, `syntax`) explaining the rule.
 - **Rate limiting:** HTTP 429 on excessive requests (no official limit documented).
-- **Dates use DD/MM/YYYY** (Brazilian format). The `bcbdata` client also accepts YYYY-MM-DD for convenience.
+- **Dates use DD/MM/YYYY** (Brazilian format). The `bcb-data` client also accepts YYYY-MM-DD for convenience.
 - **Invalid series codes** get HTTP 200 with an HTML "Requisição inválida!" page after ~30 seconds, not a 404 (observed September 2026).
 - **Empty arrays** are returned when a valid series has no data in the requested range.
 
@@ -260,11 +260,11 @@ search terms. Numeric codes and fetched data are unchanged.
 
 ## Python Usage Examples
 
-### Using the bcbdata package (this project)
+### Using the bcb-data package (this project)
 
 ```python
-from bcbdata import fetch_series, fetch_last, fetch_multiple
-from bcbdata import INTEREST_RATES, EXCHANGE_RATES, INFLATION
+from bcb_data import fetch_series, fetch_last, fetch_multiple
+from bcb_data import INTEREST_RATES, EXCHANGE_RATES, INFLATION
 
 # Fetch CDI daily rate for 2024
 cdi = fetch_series(INTEREST_RATES["CDI_DAILY"], start_date="2024-01-01", end_date="2024-12-31")
@@ -280,7 +280,7 @@ df = fetch_multiple(
 )
 
 # Search available codes
-from bcbdata import search_codes, list_codes
+from bcb_data import search_codes, list_codes
 search_codes("IPCA")           # find all IPCA-related codes
 list_codes("INTEREST_RATES")   # list all interest rate codes
 ```

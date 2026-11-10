@@ -5,18 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bcbpy"
 version = "2.5.0"
-description = "Compatibility imports for bcbdata, formerly bcbpy"
+description = "Compatibility imports for bcb-data, formerly bcbpy"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "Rodrigo Teodoro", email = "rteoo@users.noreply.github.com" }]
-dependencies = ["bcbdata==2.5.0"]
+dependencies = ["bcb-data==2.5.0"]
 
 [project.urls]
-Homepage = "https://github.com/rteoo/bcbdata"
-Repository = "https://github.com/rteoo/bcbdata"
-Migration = "https://github.com/rteoo/bcbdata/blob/main/docs/migration.md"
+Homepage = "https://github.com/rteoo/bcb-data"
+Repository = "https://github.com/rteoo/bcb-data"
+Migration = "https://github.com/rteoo/bcb-data/blob/main/docs/migration.md"
 
 [tool.setuptools.packages.find]
 include = ["bcbpy*"]

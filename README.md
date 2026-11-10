@@ -1,7 +1,7 @@
-# bcbdata
+# bcb-data
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/rteoo/bcbdata/main/docs/bcbdata-icon.svg" width="128" alt="bcbdata time-series icon">
+  <img src="https://raw.githubusercontent.com/rteoo/bcb-data/main/docs/bcb-data-icon.svg" width="128" alt="bcb-data time-series icon">
 </p>
 
 <p align="center">
@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rteoo/bcbdata/actions/workflows/tests.yml"><img src="https://github.com/rteoo/bcbdata/actions/workflows/tests.yml/badge.svg" alt="Test status"></a>
-  <a href="https://pypi.org/project/bcbdata/"><img src="https://img.shields.io/pypi/v/bcbdata?label=PyPI" alt="PyPI version"></a>
-  <a href="https://pypi.org/project/bcbdata/"><img src="https://img.shields.io/pypi/pyversions/bcbdata" alt="Supported Python versions"></a>
+  <a href="https://github.com/rteoo/bcb-data/actions/workflows/tests.yml"><img src="https://github.com/rteoo/bcb-data/actions/workflows/tests.yml/badge.svg" alt="Test status"></a>
+  <a href="https://pypi.org/project/bcb-data/"><img src="https://img.shields.io/pypi/v/bcb-data?label=PyPI" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/bcb-data/"><img src="https://img.shields.io/pypi/pyversions/bcb-data" alt="Supported Python versions"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
 </p>
 
@@ -35,18 +35,20 @@ rates, inflation, GDP, employment, and more from Python without an API key.
 
 ## Installation
 
-The first `bcbdata` release is being prepared. Until it is published, use the
+Install the `bcb-data` distribution; use `bcb_data` in Python imports.
+
+The first `bcb-data` release is being prepared. Until it is published, use the
 source installation below. Existing `bcbpy` releases remain available.
 
 ```bash
-pip install bcbdata
+pip install bcb-data
 ```
 
 Or from source:
 
 ```bash
-git clone https://github.com/rteoo/bcbdata.git
-cd bcbdata
+git clone https://github.com/rteoo/bcb-data.git
+cd bcb-data
 pip install .
 ```
 
@@ -58,16 +60,16 @@ pip install .
 
 ### Migrating from bcbpy
 
-Use `pip install bcbdata` and replace `from bcbpy ...` with `from bcbdata ...`
+Use `pip install bcb-data` and replace `from bcbpy ...` with `from bcb_data ...`
 after the new release is published. The prepared `bcbpy` 2.5.0 compatibility
-distribution depends on the matching `bcbdata` release and preserves existing
+distribution depends on the matching `bcb-data` release and preserves existing
 public imports, submodule paths, and exception identities. No existing PyPI
 release is deleted or renamed. See [migration and release preparation](docs/migration.md).
 
 ## Quick Start
 
 ```python
-from bcbdata import fetch_series, fetch_last, fetch_multiple, INTEREST_RATES, EXCHANGE_RATES
+from bcb_data import fetch_series, fetch_last, fetch_multiple, INTEREST_RATES, EXCHANGE_RATES
 
 # Last 10 CDI daily rates
 cdi = fetch_last(INTEREST_RATES["CDI_DAILY"], n=10)
@@ -95,7 +97,7 @@ print(df.tail())
 Fetch a time series by its SGS numeric code. Returns a pandas DataFrame indexed by date.
 
 ```python
-from bcbdata import fetch_series
+from bcb_data import fetch_series
 
 # Accepts YYYY-MM-DD or DD/MM/YYYY date formats
 ipca = fetch_series(433, start_date="2023-01-01", end_date="2024-12-31")
@@ -108,7 +110,7 @@ Daily series (CDI, Selic, USD/BRL, …) require a `start_date`: BCB rejects unda
 Fetch the last N observations of a series.
 
 ```python
-from bcbdata import fetch_last
+from bcb_data import fetch_last
 
 selic = fetch_last(11, n=5)
 ```
@@ -118,7 +120,7 @@ selic = fetch_last(11, n=5)
 Fetch multiple series and merge them into a single DataFrame, one column per series.
 
 ```python
-from bcbdata import fetch_multiple
+from bcb_data import fetch_multiple
 
 df = fetch_multiple({"CDI": 12, "SELIC": 11, "TR": 226}, start_date="2024-01-01")
 ```
@@ -128,7 +130,7 @@ df = fetch_multiple({"CDI": 12, "SELIC": 11, "TR": 226}, start_date="2024-01-01"
 Fetch one SGS window as a `RawResult` (payload bytes plus request metadata). Same 10-year single-call limit as `fetch_series`. Does not parse the body.
 
 ```python
-from bcbdata import fetch_raw
+from bcb_data import fetch_raw
 
 raw = fetch_raw(12, start_date="2024-01-01", end_date="2024-01-31")
 print(raw.sha256, raw.source_url, raw.params)
@@ -139,7 +141,7 @@ print(raw.sha256, raw.source_url, raw.params)
 Like `fetch_raw`, but splits ranges longer than 10 years into bounded partitions. Adjacent partitions do not share a calendar day.
 
 ```python
-from bcbdata import fetch_raw_range
+from bcb_data import fetch_raw_range
 
 parts = fetch_raw_range(433, start_date="2010-01-01", end_date="2024-12-31")
 ```
@@ -149,7 +151,7 @@ parts = fetch_raw_range(433, start_date="2010-01-01", end_date="2024-12-31")
 Print all available series codes. Pass a category name to filter.
 
 ```python
-from bcbdata import list_codes
+from bcb_data import list_codes
 
 list_codes()                        # all 114 codes across 14 categories
 list_codes("INTEREST_RATES")        # only interest rate codes
@@ -160,7 +162,7 @@ list_codes("INTEREST_RATES")        # only interest rate codes
 Search codes by keyword (case-insensitive). Returns a dict of matches.
 
 ```python
-from bcbdata import search_codes
+from bcb_data import search_codes
 
 results = search_codes("IPCA")      # finds 15 IPCA-related codes
 results = search_codes("USD")       # finds USD exchange rate codes
@@ -170,7 +172,7 @@ results = search_codes("USD")       # finds USD exchange rate codes
 
 | Exception | When |
 |-----------|------|
-| `SGSError` | Base class for every error raised by bcbdata, including malformed or non-JSON responses (e.g. an unknown series code) |
+| `SGSError` | Base class for every error raised by bcb-data, including malformed or non-JSON responses (e.g. an unknown series code) |
 | `SGSHTTPError` | Any other HTTP error status, with BCB's error text in the message. Also a `requests.HTTPError`. |
 | `SGSRateLimitError` | API returns HTTP 429 (too many requests). `retry_after` is set from `Retry-After` when present. |
 | `SGSEmptyResponseError` | No data returned for the given query |
@@ -180,7 +182,7 @@ Network failures (timeouts, connection errors) are raised by `requests` unchange
 ### Error Handling
 
 ```python
-from bcbdata import fetch_series, SGSRateLimitError, SGSEmptyResponseError
+from bcb_data import fetch_series, SGSRateLimitError, SGSEmptyResponseError
 
 try:
     df = fetch_series(433, start_date="2024-01-01")
@@ -214,7 +216,7 @@ except SGSEmptyResponseError:
 Use any code directly by number or via the category dictionaries:
 
 ```python
-from bcbdata import INFLATION, GDP
+from bcb_data import INFLATION, GDP
 
 # These are equivalent:
 fetch_series(433)
@@ -248,7 +250,7 @@ are bilateral; `REER_BASKET` (11752) remains the effective currency-basket
 index. All five exchange-rate indices are IPCA-based, with June 1994 = 100.
 
 ```python
-from bcbdata import fetch_last, EMPLOYMENT, INTEREST_RATES, EXCHANGE_RATE_INDEX
+from bcb_data import fetch_last, EMPLOYMENT, INTEREST_RATES, EXCHANGE_RATE_INDEX
 
 income = fetch_last(EMPLOYMENT["AVG_REAL_HABITUAL_INCOME"])
 selic = fetch_last(INTEREST_RATES["SELIC_MONTHLY_ANNUALIZED"])
@@ -279,15 +281,15 @@ These registered series have stopped updating in SGS (last observation as of Sep
 ## Project Structure
 
 ```
-bcbdata/
-├── bcbdata/
+bcb-data/
+├── bcb_data/
 │   ├── __init__.py      # Public API exports
 │   ├── artifacts.py     # RawResult descriptor
 │   ├── client.py        # API client functions and exceptions
 │   ├── codes.py         # 114 curated series codes in 14 categories
 │   └── constants.py     # Base URLs and API configuration
 ├── docs/
-│   └── bcbdata-icon.svg   # Editable project icon
+│   └── bcb-data-icon.svg   # Editable project icon
 ├── pyproject.toml       # PyPI packaging metadata
 ├── BCB_API_REFERENCE.md # SGS API reference and series code table
 └── README.md
@@ -303,6 +305,6 @@ MIT (see [LICENSE](LICENSE)). The BCB data accessed through this client remains 
 
 ## Releasing
 
-The version in `bcbdata/__init__.py` must already be merged to `main`. From a clean checkout matching `origin/main`, run `python release.py --tag vX.Y.Z --dry-run`, then rerun without `--dry-run` and type the tag to confirm.
+The version in `bcb_data/__init__.py` must already be merged to `main`. From a clean checkout matching `origin/main`, run `python release.py --tag vX.Y.Z --dry-run`, then rerun without `--dry-run` and type the tag to confirm.
 
 The release helper runs these gates locally: `python -m pytest -m "not integration" -v` and `python -m build`. It never bumps or commits `main`; PyPI publication remains the OIDC GitHub Actions workflow. A retry is safe only for the same tag when the existing tag points at the exact merged commit and no GitHub release exists. PyPI releases are immutable; rollback means following the package-recovery process rather than deleting or replacing a published version. The helper is platform-neutral Python, but hosted Actions behavior is not proven by local execution.

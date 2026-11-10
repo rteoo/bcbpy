@@ -17,7 +17,7 @@ class ReleaseTests(TestCase):
 
     def test_dirty_checkout_refuses_before_release(self):
         def fake(*args, capture=True):
-            if args[:3] == ("git", "remote", "get-url"): return "https://github.com/rteoo/bcbdata.git"
+            if args[:3] == ("git", "remote", "get-url"): return "https://github.com/rteoo/bcb-data.git"
             if args[:3] == ("git", "branch", "--show-current"): return "main"
             if args[:3] == ("git", "status", "--porcelain"): return " M tracked.py"
             return ""
