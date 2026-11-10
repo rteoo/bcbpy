@@ -57,14 +57,14 @@ pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_p
 - **Test CI:** `.github/workflows/tests.yml` runs the unit subset (`pytest -m "not integration"`) on Python 3.10–3.13 for every push and PR to `main`. Integration tests stay out of CI (live API). No lint/type-check gate exists.
 - Publishing is CI-driven and OIDC-based (PyPI trusted publishing): publishing a final (non-prerelease) GitHub Release triggers `publish.yml`, which checks the tag equals `bcb_data.__version__` and runs the offline tests before uploading; TestPyPI staging is manual `workflow_dispatch` on `test-publish.yml`. **Do not** hand-run `twine upload` or manage PyPI tokens.
 - **Version-bump discipline:** the packaged version is dynamic — `pyproject.toml` reads it from `bcb_data/__init__.py` `__version__` via `[tool.setuptools.dynamic]`, so `__version__` is the single source of truth. A release bumps only `__version__`, adds a `CHANGELOG.md` entry, and pushes a matching `v*` tag.
-- The `compat/bcbpy` distribution is versioned alongside `bcb-data`; update its version and exact dependency together. Tests enforce equality. Its shim aliases canonical modules; do not add a second client implementation or bundle `bcbpy` in the canonical wheel.
-- `publish.yml` publishes `bcb-data` before the dependent compatibility distribution. Both projects need Trusted Publishers pointing at `rteoo/bcb-data`, workflow `publish.yml`, environment `pypi`; see `docs/migration.md`.
+- `compat/bcbpy` is the frozen final legacy distribution at 2.5.0, pinned to `bcb-data==2.5.0`. Do not bump, rebuild for release, or publish it again. Retain the source and legacy import/pickle regression checks; never bundle `bcbpy` in the canonical wheel.
+- PyPI and TestPyPI workflows publish only `bcb-data`. The local release helper and CI package job build only the canonical distribution; future versions must not depend on updating `compat/bcbpy`. See `docs/migration.md`.
 - **Release flow:** `main` is branch-protected, so the release commit goes through a PR. Tag the merged commit on `main` only after that PR lands. A tag push alone publishes nothing; `release.py` (or Shipboard running it) creates the GitHub Release, and that release is what publishes.
 
 ## Known Drift (don't "fix" into existence)
 
 - `requirements.txt` and the `main.py` CLI demo were **deleted** (commit `cc4f0aa`). Use the `[dev]` extra; there is no `main.py`. Only old `CHANGELOG.md` entries still mention them.
-- Canonical repository and distribution are `rteoo/bcb-data` and `bcb-data`; Python imports use `bcb_data`. The new PyPI project is pending its first publication. Older `CHANGELOG.md` entries reference `github.com/TeodoroRodrigo/bcbpy`; preserve that history.
+- Canonical repository and distribution are `rteoo/bcb-data` and `bcb-data`; Python imports use `bcb_data`. The first canonical release, 2.5.0, is published on PyPI. Older `CHANGELOG.md` entries reference `github.com/TeodoroRodrigo/bcbpy`; preserve that history.
 - Licensing duality: code is MIT; data fetched via the client remains under ODbL (see `LICENSE`) — relevant to any data-redistribution feature/doc.
 
 ## Git
