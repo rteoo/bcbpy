@@ -58,10 +58,11 @@ pip install .
 ### Migrating from bcbpy
 
 Use `pip install bcb-data` and replace `from bcbpy ...` with `from bcb_data ...`
-in new code. Starting with 2.5.0, the `bcbpy` compatibility distribution depends
-on the matching `bcb-data` release and preserves existing
-public imports, submodule paths, and exception identities. No existing PyPI
-release is deleted or renamed. See the [migration guide](docs/migration.md).
+in new code. The final `bcbpy` compatibility release is 2.5.0, pinned to
+`bcb-data==2.5.0`. It preserves existing public imports, submodule paths, and
+exception identities, but receives no further updates. Install `bcb-data`
+directly to receive future releases. Existing PyPI releases remain installable
+after archival. See the [migration guide](docs/migration.md).
 
 ## Quick Start
 

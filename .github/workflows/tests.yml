@@ -39,7 +39,7 @@ jobs:
         run: python -m pytest -m "not integration" -v
 
   package:
-    name: Build and smoke-test migration distributions
+    name: Build and smoke-test distribution
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -50,14 +50,13 @@ jobs:
           python-version: "3.12"
       - name: Install build tools
         run: python -m pip install ".[dev]"
-      - name: Build and check both distributions
+      - name: Build and check distribution
         run: |
           python -m build --outdir dist/bcb-data
-          python -m build compat/bcbpy --outdir dist/bcbpy
-          python -m twine check --strict dist/bcb-data/* dist/bcbpy/*
-      - name: Import both wheels outside the checkout
+          python -m twine check --strict dist/bcb-data/*
+      - name: Import the wheel outside the checkout
         run: |
           python -m venv "$RUNNER_TEMP/bcb-data-wheels"
-          "$RUNNER_TEMP/bcb-data-wheels/bin/python" -m pip install dist/bcb-data/*.whl dist/bcbpy/*.whl
+          "$RUNNER_TEMP/bcb-data-wheels/bin/python" -m pip install dist/bcb-data/*.whl
           cd "$RUNNER_TEMP"
-          "$RUNNER_TEMP/bcb-data-wheels/bin/python" -c "from importlib.metadata import version; import bcb_data, bcbpy; assert version('bcb-data') == version('bcbpy') == bcb_data.__version__; assert all(getattr(bcbpy, name) is getattr(bcb_data, name) for name in bcb_data.__all__); import bcbpy.client, bcb_data.client; assert bcbpy.client is bcb_data.client"
+          "$RUNNER_TEMP/bcb-data-wheels/bin/python" -c "from importlib.metadata import version; import bcb_data; assert version('bcb-data') == bcb_data.__version__; assert all(hasattr(bcb_data, name) for name in bcb_data.__all__)"

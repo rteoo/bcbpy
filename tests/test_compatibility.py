@@ -40,8 +40,10 @@ def test_legacy_raw_result_pickle_is_readable():
     assert pickle.loads(legacy) == result
 
 
-def test_compatibility_release_matches_canonical_version():
+@pytest.mark.parametrize("canonical_version", ["2.5.0", "2.6.0"])
+def test_compatibility_release_is_frozen(monkeypatch, canonical_version):
+    monkeypatch.setattr(bcb_data, "__version__", canonical_version)
     root = Path(__file__).parents[1]
     metadata = (root / "compat/bcbpy/pyproject.toml").read_text(encoding="utf-8")
-    assert re.search(r'^version = "([^"]+)"', metadata, re.M).group(1) == bcb_data.__version__
-    assert f'dependencies = ["bcb-data=={bcb_data.__version__}"]' in metadata
+    assert re.search(r'^version = "([^"]+)"', metadata, re.M).group(1) == "2.5.0"
+    assert 'dependencies = ["bcb-data==2.5.0"]' in metadata

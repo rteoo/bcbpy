@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 REPO = 'rteoo/bcb-data'
 ROOT = Path(__file__).resolve().parent
-GATES = [(sys.executable, '-m', 'pytest', '-m', 'not integration', '-v'), (sys.executable, '-m', 'build'), (sys.executable, '-m', 'build', 'compat/bcbpy')]
+GATES = [(sys.executable, '-m', 'pytest', '-m', 'not integration', '-v'), (sys.executable, '-m', 'build')]
 
 def command(*args: str, capture=True):
     r = subprocess.run(args, text=True, capture_output=capture, check=False)
