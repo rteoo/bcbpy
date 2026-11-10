@@ -1,5 +1,15 @@
 # Changelog
 
+## [v2.5.0] - Unreleased
+
+### Changed
+- Rename the canonical distribution, import package, and repository to `bcbdata`.
+- Update current documentation, artwork, metadata, release guards, and publishing targets.
+
+### Added
+- A separately built `bcbpy` compatibility distribution that installs the matching `bcbdata` version and aliases its public API and existing submodule paths.
+- Migration checks for legacy imports, exception identity, monkeypatches, and serialized raw results.
+
 ## [v2.3.0] - 2026-10-07
 
 ### Added

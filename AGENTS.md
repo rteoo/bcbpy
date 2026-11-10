@@ -8,7 +8,7 @@ Canonical agent contract for this repository. Keep all project guidance here.
 
 ## Project
 
-`bcbpy` is a Python client library for the **BCB SGS** (Banco Central do Brasil — Sistema Gerenciador de Séries Temporais) API. It fetches Brazilian economic/financial time series (FX, interest rates, inflation, GDP, employment, …) as pandas DataFrames, and ships a curated registry of 114 SGS series codes across 14 categories. Public API (`bcbpy/__init__.py`): `fetch_series`, `fetch_last`, `fetch_multiple`, `fetch_raw`, `fetch_raw_range`, `RawResult`, `list_codes`, `search_codes`, plus `SGSError` / `SGSHTTPError` / `SGSRateLimitError` / `SGSEmptyResponseError`. Library only — no CLI, no `__main__`.
+`bcbdata` is a Python client library for the **BCB SGS** (Banco Central do Brasil — Sistema Gerenciador de Séries Temporais) API. It fetches Brazilian economic/financial time series (FX, interest rates, inflation, GDP, employment, …) as pandas DataFrames, and ships a curated registry of 114 SGS series codes across 14 categories. Public API (`bcbdata/__init__.py`): `fetch_series`, `fetch_last`, `fetch_multiple`, `fetch_raw`, `fetch_raw_range`, `RawResult`, `list_codes`, `search_codes`, plus `SGSError` / `SGSHTTPError` / `SGSRateLimitError` / `SGSEmptyResponseError`. Library only — no CLI, no `__main__`.
 
 ## Stack
 
@@ -33,11 +33,11 @@ python -m build                                      # build sdist+wheel (releas
 
 Four-module package, layered:
 
-- `bcbpy/constants.py` — `BASE_URL`, `LAST_N_URL`, `DATE_FORMAT`, `MAX_DATE_RANGE_YEARS`, `PARSER_VERSION`.
-- `bcbpy/codes.py` — pure data: 114 SGS codes in 14 category dicts + derived `CATEGORIES` / `ALL_CODES`. Hand-curated, not generated.
-- `bcbpy/artifacts.py` — public `RawResult` descriptor (payload bytes, URL, params, headers, fetch time, series identity, library/parser version).
-- `bcbpy/client.py` — HTTP, DataFrame conversion, raw fetch, and bounded range composition; imports from the other modules.
-- `bcbpy/__init__.py` — re-exports the public surface; keep `__all__` in sync when adding/removing exports.
+- `bcbdata/constants.py` — `BASE_URL`, `LAST_N_URL`, `DATE_FORMAT`, `MAX_DATE_RANGE_YEARS`, `PARSER_VERSION`.
+- `bcbdata/codes.py` — pure data: 114 SGS codes in 14 category dicts + derived `CATEGORIES` / `ALL_CODES`. Hand-curated, not generated.
+- `bcbdata/artifacts.py` — public `RawResult` descriptor (payload bytes, URL, params, headers, fetch time, series identity, library/parser version).
+- `bcbdata/client.py` — HTTP, DataFrame conversion, raw fetch, and bounded range composition; imports from the other modules.
+- `bcbdata/__init__.py` — re-exports the public surface; keep `__all__` in sync when adding/removing exports.
 
 Load-bearing behavior to preserve:
 - `_format_date` accepts both `YYYY-MM-DD` and `DD/MM/YYYY` and normalizes to BCB's `DD/MM/YYYY`. Keep the dual-format acceptance and the `DATE_FORMAT` constant.
@@ -49,20 +49,22 @@ Load-bearing behavior to preserve:
 
 pytest under `tests/` (`test_client.py`, `test_raw.py`, `test_codes.py`, `test_package.py`, `test_version.py`, `test_integration.py`); classes `Test*`, methods `test_*`. The `integration` marker is registered in `pyproject.toml` and applied module-wide in `test_integration.py` (opt-in via `-m integration`, excluded via `-m "not integration"`). No coverage tooling.
 
-- Unit tests mock `requests.get` (or inject a `transport=` callable, or `bcbpy.client.fetch_series` for `fetch_multiple`) via `unittest.mock.patch`. New client functions get a mocked unit test and, if they hit the network, a matching `@pytest.mark.integration` test.
+- Unit tests mock `requests.get` (or inject a `transport=` callable, or `bcbdata.client.fetch_series` for `fetch_multiple`) via `unittest.mock.patch`. New client functions get a mocked unit test and, if they hit the network, a matching `@pytest.mark.integration` test.
 - Code registry (`codes.py`): keys must be `UPPER_SNAKE_CASE`, values unique positive ints across all categories — enforced by `tests/test_codes.py`. Adding a series code means updating the category dict (`CATEGORIES`/`ALL_CODES` stay auto-derived) and bumping the corresponding `test_category_sizes` count assertion. Verify a new or changed code against its SGS series name first: the registry has shipped mislabeled codes before (fixed in 2.2.0).
 
 ## Release & CI
 
 - **Test CI:** `.github/workflows/tests.yml` runs the unit subset (`pytest -m "not integration"`) on Python 3.10–3.13 for every push and PR to `main`. Integration tests stay out of CI (live API). No lint/type-check gate exists.
-- Publishing is CI-driven and OIDC-based (PyPI trusted publishing): publishing a final (non-prerelease) GitHub Release triggers `publish.yml`, which checks the tag equals `bcbpy.__version__` and runs the offline tests before uploading; TestPyPI staging is manual `workflow_dispatch` on `test-publish.yml`. **Do not** hand-run `twine upload` or manage PyPI tokens.
-- **Version-bump discipline:** the packaged version is dynamic — `pyproject.toml` reads it from `bcbpy/__init__.py` `__version__` via `[tool.setuptools.dynamic]`, so `__version__` is the single source of truth. A release bumps only `__version__`, adds a `CHANGELOG.md` entry, and pushes a matching `v*` tag.
+- Publishing is CI-driven and OIDC-based (PyPI trusted publishing): publishing a final (non-prerelease) GitHub Release triggers `publish.yml`, which checks the tag equals `bcbdata.__version__` and runs the offline tests before uploading; TestPyPI staging is manual `workflow_dispatch` on `test-publish.yml`. **Do not** hand-run `twine upload` or manage PyPI tokens.
+- **Version-bump discipline:** the packaged version is dynamic — `pyproject.toml` reads it from `bcbdata/__init__.py` `__version__` via `[tool.setuptools.dynamic]`, so `__version__` is the single source of truth. A release bumps only `__version__`, adds a `CHANGELOG.md` entry, and pushes a matching `v*` tag.
+- The `compat/bcbpy` distribution is versioned alongside `bcbdata`; update its version and exact dependency together. Tests enforce equality. Its shim aliases canonical modules; do not add a second client implementation or bundle `bcbpy` in the canonical wheel.
+- `publish.yml` publishes `bcbdata` before the dependent compatibility distribution. Both projects need Trusted Publishers pointing at `rteoo/bcbdata`, workflow `publish.yml`, environment `pypi`; see `docs/migration.md`.
 - **Release flow:** `main` is branch-protected, so the release commit goes through a PR. Tag the merged commit on `main` only after that PR lands. A tag push alone publishes nothing; `release.py` (or Shipboard running it) creates the GitHub Release, and that release is what publishes.
 
 ## Known Drift (don't "fix" into existence)
 
 - `requirements.txt` and the `main.py` CLI demo were **deleted** (commit `cc4f0aa`). Use the `[dev]` extra; there is no `main.py`. Only old `CHANGELOG.md` entries still mention them.
-- Canonical repo is `github.com/rteoo/bcbpy` (the live remote, the `pyproject.toml` URLs, and the PyPI project all agree). Older `CHANGELOG.md` entries reference the former `github.com/TeodoroRodrigo/bcbpy` path — that is historical and must stay as written.
+- Canonical repo is `github.com/rteoo/bcbdata` (the live remote, the `pyproject.toml` URLs, and the PyPI project all agree). Older `CHANGELOG.md` entries reference the former `github.com/TeodoroRodrigo/bcbdata` path — that is historical and must stay as written.
 - Licensing duality: code is MIT; data fetched via the client remains under ODbL (see `LICENSE`) — relevant to any data-redistribution feature/doc.
 
 ## Git
