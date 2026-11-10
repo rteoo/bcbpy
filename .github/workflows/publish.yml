@@ -15,7 +15,7 @@ concurrency:
 jobs:
   build:
     name: Test and build distribution
-    if: github.repository == 'rteoo/bcbdata' && !github.event.release.prerelease
+    if: github.repository == 'rteoo/bcb-data' && !github.event.release.prerelease
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check the release tag matches bcbdata.__version__
+      - name: Check the release tag matches bcb_data.__version__
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
@@ -39,9 +39,9 @@ jobs:
           tag = os.environ["RELEASE_TAG"]
           if not re.fullmatch(r"v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", tag):
               raise SystemExit(f"Release tag {tag!r} must match vX.Y.Z")
-          match = re.search(r'^__version__ = "([^"]+)"', Path("bcbdata/__init__.py").read_text(), re.MULTILINE)
+          match = re.search(r'^__version__ = "([^"]+)"', Path("bcb_data/__init__.py").read_text(), re.MULTILINE)
           if not match or tag != "v" + match.group(1):
-              raise SystemExit(f"Release tag {tag} does not match bcbdata.__version__ {match and match.group(1)!r}")
+              raise SystemExit(f"Release tag {tag} does not match bcb_data.__version__ {match and match.group(1)!r}")
           PY
 
       - name: Install package with dev extras
@@ -52,11 +52,11 @@ jobs:
 
       - name: Build sdist and wheel
         run: |
-          python -m build --outdir dist/bcbdata
+          python -m build --outdir dist/bcb-data
           python -m build compat/bcbpy --outdir dist/bcbpy
 
       - name: Check distributions
-        run: python -m twine check --strict dist/bcbdata/* dist/bcbpy/*
+        run: python -m twine check --strict dist/bcb-data/* dist/bcbpy/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/bcbdata
+      url: https://pypi.org/p/bcb-data
     permissions:
       id-token: write
     steps:
@@ -84,7 +84,7 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
         with:
-          packages-dir: dist/bcbdata/
+          packages-dir: dist/bcb-data/
 
   publish-compatibility:
     name: Publish bcbpy compatibility package

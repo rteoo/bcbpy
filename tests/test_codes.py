@@ -1,10 +1,10 @@
-"""Tests for bcbdata.codes — series code registry."""
+"""Tests for bcb_data.codes — series code registry."""
 
 import pytest
 
-import bcbdata
+import bcb_data
 
-from bcbdata.codes import (
+from bcb_data.codes import (
     EXCHANGE_RATES,
     INTEREST_RATES,
     INFLATION,
@@ -37,10 +37,10 @@ class TestRenamedRegistryKeys:
     def test_names_match_sgs_metadata(self, category, old_key, new_key, code):
         # Names verified via SGS getUltimoValorXML on 2026-09-29.
         registry = CATEGORIES[category]
-        assert getattr(bcbdata, category) is registry
+        assert getattr(bcb_data, category) is registry
         assert registry[new_key] == code
         assert ALL_CODES[new_key] == code
-        assert bcbdata.ALL_CODES[new_key] == code
+        assert bcb_data.ALL_CODES[new_key] == code
         with pytest.raises(KeyError):
             registry[old_key]
         with pytest.raises(KeyError):

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-labelledby="title desc">
-  <title id="title">bcbdata</title>
+  <title id="title">bcb-data</title>
   <desc id="desc">An economic time series with a copper observation on a matte ink tile.</desc>
   <rect x="4" y="4" width="120" height="120" rx="24" fill="#11151B" stroke="#465363" stroke-width="2"/>
   <path d="M28 30V98H100" fill="none" stroke="#A8B0BC" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>

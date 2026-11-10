@@ -1,14 +1,14 @@
 """
-bcbdata — Python client for the BCB SGS (Sistema Gerenciador de Series) API.
+bcb_data — Python client for the BCB SGS (Sistema Gerenciador de Series) API.
 
 Usage:
-    from bcbdata import fetch_series, fetch_last, fetch_multiple, INTEREST_RATES
+    from bcb_data import fetch_series, fetch_last, fetch_multiple, INTEREST_RATES
 
     # Fetch CDI daily rate for 2024
     cdi = fetch_series(INTEREST_RATES["CDI_DAILY"], start_date="2024-01-01")
 
     # Last 10 observations of USD/BRL
-    from bcbdata import EXCHANGE_RATES
+    from bcb_data import EXCHANGE_RATES
     usd = fetch_last(EXCHANGE_RATES["USD_SALE_DAILY"], n=10)
 
     # Multiple series at once

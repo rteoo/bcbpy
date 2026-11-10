@@ -3,10 +3,10 @@
 Source: [Teô Personal Design System](https://github.com/rteoo/design-system-teo),
 **v2.7.1 (Ink & Copper)**. This adoption covers the project icon only.
 
-- `docs/bcbdata-icon.svg` is the editable README artwork; `assets/icon.svg` is its
+- `docs/bcb-data-icon.svg` is the editable README artwork; `assets/icon.svg` is its
   byte-identical project-discovery copy. Update both together.
-- `docs/bcbpy-icon.svg` remains a byte-identical compatibility URL for older
-  published READMEs. Update all three copies together.
+- `docs/bcbpy-icon.svg` and `docs/bcbdata-icon.svg` remain byte-identical
+  compatibility URLs for older READMEs. Update all four copies together.
 - The time-series line represents economic observations, not an official BCB mark.
 - Colors follow the source tokens: ink canvas `#11151B`, primary foreground
   `#F2EFE9`, muted foreground `#A8B0BC`, copper `#E6A05A`, and border `#465363`.

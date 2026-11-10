@@ -8,8 +8,8 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from bcbdata import PARSER_VERSION, RawResult, __version__
-from bcbdata.client import (
+from bcb_data import PARSER_VERSION, RawResult, __version__
+from bcb_data.client import (
     _date_partitions,
     _validate_date_range,
     fetch_raw,
@@ -17,7 +17,7 @@ from bcbdata.client import (
     fetch_series,
     SGSRateLimitError,
 )
-from bcbdata.constants import BASE_URL
+from bcb_data.constants import BASE_URL
 
 
 PAYLOAD = b'[{"data":"10/04/2026","valor":"0.054"}]'
@@ -64,7 +64,7 @@ class TestFetchRaw:
         assert result.retry_after is None
 
     def test_transport_is_used_instead_of_requests(self):
-        with patch("bcbdata.client.requests.get") as mock_get:
+        with patch("bcb_data.client.requests.get") as mock_get:
             fetch_raw(12, start_date="2026-01-01", end_date="2026-01-31", transport=_transport(PAYLOAD))
             mock_get.assert_not_called()
 
