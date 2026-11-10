@@ -1,7 +1,7 @@
 # bcb-data
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/rteoo/bcb-data/main/docs/bcb-data-icon.svg" width="128" alt="bcb-data time-series icon">
+  <img src="https://raw.githubusercontent.com/rteoo/bcb-data/v2.5.0/docs/bcb-data-icon.svg" width="128" alt="bcb-data time-series icon">
 </p>
 
 <p align="center">
@@ -37,9 +37,6 @@ rates, inflation, GDP, employment, and more from Python without an API key.
 
 Install the `bcb-data` distribution; use `bcb_data` in Python imports.
 
-The first `bcb-data` release is being prepared. Until it is published, use the
-source installation below. Existing `bcbpy` releases remain available.
-
 ```bash
 pip install bcb-data
 ```
@@ -61,10 +58,10 @@ pip install .
 ### Migrating from bcbpy
 
 Use `pip install bcb-data` and replace `from bcbpy ...` with `from bcb_data ...`
-after the new release is published. The prepared `bcbpy` 2.5.0 compatibility
-distribution depends on the matching `bcb-data` release and preserves existing
+in new code. Starting with 2.5.0, the `bcbpy` compatibility distribution depends
+on the matching `bcb-data` release and preserves existing
 public imports, submodule paths, and exception identities. No existing PyPI
-release is deleted or renamed. See [migration and release preparation](docs/migration.md).
+release is deleted or renamed. See the [migration guide](docs/migration.md).
 
 ## Quick Start
 
@@ -294,6 +291,16 @@ bcb-data/
 ├── BCB_API_REFERENCE.md # SGS API reference and series code table
 └── README.md
 ```
+
+## Related Clients
+
+| Library | Python import | Official data source |
+|---|---|---|
+| [bcb-data](https://github.com/rteoo/bcb-data) | `bcb_data` | Banco Central do Brasil SGS |
+| [ibge-data](https://github.com/rteoo/ibge-data) | `ibge_data` | IBGE SIDRA, Aggregates, and Calendar |
+| [cvmbr-data](https://github.com/rteoo/cvmbr-data) | `cvmbr_data` | CVM open data and RAD/ENET filings |
+
+Each client is an independent package. Install only the libraries your project uses.
 
 ## Data Source
 

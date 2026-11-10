@@ -1,6 +1,6 @@
 # Changelog
 
-## [v2.5.0] - Unreleased
+## [v2.5.0] - 2026-11-10
 
 ### Changed
 - Rename the canonical distribution and repository to `bcb-data`, with the Python import package `bcb_data`.
